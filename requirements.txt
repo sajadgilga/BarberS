@@ -1,0 +1,2 @@
+django-restframework==0.0.1
+djangorestframework==3.10.3
