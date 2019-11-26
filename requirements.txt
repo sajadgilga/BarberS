@@ -1,2 +1,7 @@
+Django==2.2.7
 django-restframework==0.0.1
 djangorestframework==3.10.3
+Pillow==6.2.1
+psycopg2-binary==2.8.4
+pytz==2019.3
+sqlparse==0.3.0

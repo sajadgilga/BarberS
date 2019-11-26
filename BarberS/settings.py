@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
 
-    'client',
 ]
 
 MIDDLEWARE = [
@@ -55,10 +54,14 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'BarberS.urls'
 
+WSGI_APPLICATION = 'BarberS.wsgi.application'
+
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')]
+        ,
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -71,16 +74,18 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'BarberS.wsgi.application'
-
-
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'barber_s',
+        'USER': 'barber',
+        'PASSWORD': 'barberer',
+        'HOST': 'localhost',
+        'PORT': '',
+        'CONN_MAX_AGE': None,
     }
 }
 
