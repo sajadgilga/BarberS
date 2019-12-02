@@ -24,7 +24,9 @@ from client.views import CustomAuthToken
 app_name = 'client'
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('login/<str:phone>/', CustomAuthToken.as_view())
+    path('login/<str:phone>/', CustomAuthToken.as_view()),
+
+    path('login/',CustomAuthToken.as_view()),
     # path('login/', v.obtain_auth_token),#built in view to obtain token  from given username and password
      # path('hello/',views.hello_world,name = 'hello_world'),
 ]
