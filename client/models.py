@@ -1,9 +1,17 @@
 from django.db import models
+from django.conf import settings
+from django.dispatch import receiver
+from rest_framework.authtoken.models import Token
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
 
 
 class Customer(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+
     like = models.ManyToManyField(to='Barber', related_name='customer')
     phone = models.CharField('contact phone', max_length=20)
+    key_code = models.IntegerField(default=-1)
     snn = models.CharField('national code', max_length=12)  # what is the maximum for snn
     firstName = models.CharField('first name', max_length=20)
     lastName = models.CharField('last name', max_length=40)
@@ -21,6 +29,11 @@ class Customer(models.Model):
     credit = models.IntegerField()  # mojodi
     image = models.ImageField()
     location = models.CharField(max_length=200)
+    # for authenticate user with phone and sent code ;
+    def create_customer(self,phone,key_code):
+        self.phone = phone;
+        self.key_code = key_code;
+
 
 
 class Barber(models.Model):
@@ -90,3 +103,12 @@ class Service(models.Model):
     barber = models.ForeignKey('Barber', on_delete=models.CASCADE)
     service = models.ForeignKey(to='ServiceSchema', on_delete=models.CASCADE)
     cost = models.FloatField('cost of service')
+
+
+"""" automaticly make a token for new users"""
+
+
+# @receiver(post_save, sender=settings.AUTH_USER_MODEL)
+# def create_auth_token(sender, instance=None, created=False, **kwargs):
+#     if created:
+#         Token.objects.create(user=instance)
