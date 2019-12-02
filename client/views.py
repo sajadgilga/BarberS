@@ -18,8 +18,8 @@ class CustomAuthToken(ObtainAuthToken):
         # serializer = self.serializer_class(data=request.data,
         # serializer.is_valid(raise_exception=True)
         # user = serializer.validated_data['user']
-        phone = request.data['phone']
-        code = request.data['code'];
+        # phone = request.data['phone']
+        # code = request.data['code'];
         phone = request.POST.get("phone","")
         code =  request.POST.get("code","")
         # maincode = random.randrange(1000,10000,1)
