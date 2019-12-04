@@ -9,21 +9,17 @@ from django.db.models.signals import post_save
 class Customer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     like = models.ManyToManyField(to='Barber', related_name='customer')
+
+    isCompleted = models.BooleanField('',default=False);
     phone = models.CharField('contact phone', max_length=20)
     snn = models.CharField('national code', max_length=12)  # what is the maximum for snn
     firstName = models.CharField('first name', max_length=20)
     lastName = models.CharField('last name', max_length=40)
-
     genderStatus = (
         ('f', 'female'),
         ('m', 'male')
     )
-    gender = models.CharField(
-        max_length=1,
-        choices=genderStatus,
-        default='m'
-
-    )
+    gender = models.CharField(max_length=1,choices=genderStatus,default='m' )
     credit = models.IntegerField()  # mojodi
     image = models.ImageField()
     location = models.CharField(max_length=200)
@@ -52,7 +48,15 @@ class Barber(models.Model):
         default='m'
 
     )
-
+    def create(self,firstname,lastname,snn,gender,location = None,image= None,credit = 0):
+        self.firstName = firstname
+        self.lastName = lastname
+        self.gender = gender
+        self.locatoin = location
+        self.credit = credit
+        self.snn = snn
+        self.image = image
+        self.isCompleted = True;
 
 class Comment(models.Model):
     customer = models.ForeignKey('Customer', on_delete=models.CASCADE)

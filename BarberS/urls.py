@@ -27,6 +27,8 @@ urlpatterns = [
     path('login/<str:phone>/', CustomAuthToken.as_view()),
 
     path('login/',CustomAuthToken.as_view()),
+    path('signup/',views.signUp_view,name = 'sign up'),
+    # path ('signup/',CustomSignUp.as_view()),
     # path('login/', v.obtain_auth_token),#built in view to obtain token  from given username and password
      # path('hello/',views.hello_world,name = 'hello_world'),
 ]
