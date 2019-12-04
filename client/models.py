@@ -23,7 +23,7 @@ class Customer(models.Model):
     credit = models.IntegerField()  # mojodi
     image = models.ImageField()
     location = models.CharField(max_length=200)
-    # for authenticate user with phone and sent code ;
+
 
 
 
@@ -48,15 +48,7 @@ class Barber(models.Model):
         default='m'
 
     )
-    def create(self,firstname,lastname,snn,gender,location = None,image= None,credit = 0):
-        self.firstName = firstname
-        self.lastName = lastname
-        self.gender = gender
-        self.locatoin = location
-        self.credit = credit
-        self.snn = snn
-        self.image = image
-        self.isCompleted = True;
+
 
 class Comment(models.Model):
     customer = models.ForeignKey('Customer', on_delete=models.CASCADE)
