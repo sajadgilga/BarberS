@@ -1,11 +1,12 @@
+from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.response import Response
 from client.models import Customer
 from django.contrib.auth.models import User
 import random
-from rest_framework.decorators import api_view,permission_classes,APIView,authentication_classes
-from rest_framework.permissions import IsAuthenticated,AllowAny
+from rest_framework.decorators import api_view, permission_classes, APIView, authentication_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
 from django.http import HttpResponseNotAllowed
@@ -31,7 +32,6 @@ class CustomAuthToken(ObtainAuthToken):
         phone = request.data['phone']
         code = request.data['code']
 
-
         # checkking  is the phone number  in the database??
 
         # maincode = random.randrange(1000, 10000, 1)
@@ -45,66 +45,50 @@ class CustomAuthToken(ObtainAuthToken):
         else:
             # return Response(status=403)
             return Response({"false code!"})
-        '''after authentication 
-        set Profile  for complete the user information
-        and save it to the data base 
-        '''
+
+
+'''after authentication 
+set Profile  for complete the user information
+and save it to the data base 
+'''
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def signUp_view(request):
-
-
-        #how make a feild optional?
-        # why we should give a self to a method ?
+    # how make a feild optional?
+    # why we should give a self to a method ?
 
     phone = request.user.username
 
-    firstname = request.data['firstname']
-    lastname = request.data['lastname']
+    first_name = request.data['firstname']
+    last_name = request.data['lastname']
     snn = request.data['snn']
     gender = request.data['gender']
     location = request.data['location']
     image = request.data['image']
 
-    if (firstname is None or lastname is None or snn is None or gender is None):
-        msg = "please enter required fields"
-        return Response[{msg}]
+    if first_name is None or last_name is None or snn is None or gender is None:
+        msg = {"status": 201}
+        return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
     user = request.user
-    customer =Customer()
-    customer.user=user;
-    customer.credit =0;
-    customer.firstName= firstname;
-    customer.lastName =lastname
+    customer = Customer()
+    customer.user = user
+    customer.credit = 0
+    customer.firstName = first_name
+    customer.lastName = last_name
     customer.snn = snn
     customer.image = image
     customer.gender = gender
-    customer.location=location
+    customer.location = location
     customer.phone = phone
 
+    if customer is None:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
-
-    if customer is  None :
-         Customer.delete(customer)
-         return Response({"mistake in data"})
-
-    else :
-        customer.isCompleted =True
+    else:
+        customer.isCompleted = True
         customer.save()
-        msg = "succesfully signed up"
+        msg = {"status": 0}
         return Response({msg})
-
-
-
-
-
-
-
-# {
-# 	"firstname":"behnam",
-# 	"lastname":"beigi",
-# 	"snn":"2158998",
-# 	"gender":"m",
-# 	"location":"",
-# 	"image":""
-# }
