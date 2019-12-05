@@ -6,10 +6,15 @@ from client.models import *
 
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):
-    list_display = ('firstName', 'lastName', 'snn', 'phone', 'gender','code')
+    list_display = ('firstName', 'lastName', 'snn', 'phone', 'gender')
     list_filter = ('firstName', 'lastName', 'snn',)
     search_fields = ('firstName', 'lastName', 'snn',)
 
+@admin.register(LoginUser)
+class LoginUserAdmin(admin.ModelAdmin):
+    list_display = ('phone','code')
+    list_filter = ('phone','code')
+    search_fields = ('phone','code')
 
 @admin.register(Barber)
 class BarberAdmin(admin.ModelAdmin):

@@ -10,10 +10,10 @@ class Customer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     like = models.ManyToManyField(to='Barber', related_name='customer')
 
-    code = models.CharField('verification code',max_length=10)
+
     isCompleted = models.BooleanField('',default=False);
     phone = models.CharField('contact phone', max_length=20)
-    snn = models.CharField('national code', max_length=12)  # what is the maximum for snn
+    snn = models.CharField('national code', max_length=12)
     firstName = models.CharField('first name', max_length=20)
     lastName = models.CharField('last name', max_length=40)
     genderStatus = (
@@ -23,15 +23,18 @@ class Customer(models.Model):
     gender = models.CharField(max_length=1,choices=genderStatus,default='m' )
     credit = models.IntegerField(default=0)  # mojodi
     image = models.ImageField()
+
     location = models.CharField(max_length=200)
 
-
+class LoginUser(models.Model):
+    code = models.CharField('verification code ',max_length = 6)
+    phone =models.CharField('logined phone',max_length = 12)
 
 
 
 class Barber(models.Model):
     phone = models.CharField('barber phone', max_length=20)
-    snn = models.CharField('national code', max_length=12)  # what is the maximum for snn
+    snn = models.CharField('national code', max_length=12)
     firstName = models.CharField('first name', max_length=20)
     lastName = models.CharField('last name', max_length=40)
     image = models.ImageField()
@@ -99,7 +102,6 @@ class Service(models.Model):
 
 
 """" automaticly make a token for new users"""
-
 
 # @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 # def create_auth_token(sender, instance=None, created=False, **kwargs):
