@@ -9,6 +9,7 @@ class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
         fields = ['firstName', 'lastName', 'snn', 'phone', 'gender', 'like', 'credit', 'location']
+#         the fields had changed !!!!!!1
 
 
 class BarberSerializer(serializers.ModelSerializer):

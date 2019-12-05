@@ -19,12 +19,23 @@ from django.http import HttpResponseNotAllowed
 
 class CustomAuthToken(ObtainAuthToken):
     def get(self, request, phone=None):
-        users = User.objects.get_queryset()
-        for user in users:
-            if user.username == str(phone):
-                msg = "This phone has used"
-                return Response({msg})
-        return Response({phone})
+        user =( User.objects.all().filter(username = str(phone))).first()
+        maincode = random.randrange(1000, 10000, 1)
+
+        msg = ""
+        if user is None:
+            # return Response({phone})
+
+            user = User.objects.create_user(username = phone ,password = "password")
+            customer = Customer(user =user , code = maincode,phone=user.username)
+            customer.save()
+            msg = "user had saved"
+        else:
+            customer = Customer.objects.all().filter(user=user).first()
+            msg = "This phone has used"
+            customer.code = str(maincode)
+
+        return Response({msg})
 
     # username and pass will send with a post method
     def post(self, request, *args, **kwargs):
@@ -34,14 +45,18 @@ class CustomAuthToken(ObtainAuthToken):
 
         # checkking  is the phone number  in the database??
 
-        # maincode = random.randrange(1000, 10000, 1)
-        maincode = 1234;
-        if maincode == code:
-            user = User.objects.create_user(username=phone, password=code)  # in the parameter don't have self!!
-            token, create = Token.objects.get_or_create(user=user)
-            return Response({'token': token.key,
-                             'user_id': user.pk})
 
+        # maincode = 1234;
+        user = User.objects.filter(username = phone ).first()
+        if user is None :
+            msg = "invalid phone number "#it would not happen because if the post body have a right phone number
+            return Response({msg})
+        customer = Customer.objects.filter(user = user).first()
+        maincode = customer.code
+        if str(maincode) == code:
+            token, create = Token.objects.get_or_create(user=customer.user)
+            return Response({'token': token.key,
+                             'user_id': customer.user_id})
         else:
             # return Response(status=403)
             return Response({"false code!"})
