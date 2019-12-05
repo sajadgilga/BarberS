@@ -40,34 +40,3 @@ class ServiceSerializer(serializers.ModelSerializer):
         model = Service
         fields = ['barber', 'service', 'cost']
 
-
-# class CustomAuthSerializer(serializers.Serializer):
-#     def update(self, instance, validated_data):
-#         pass
-#
-#     def create(self, validated_data):
-#         pass
-#
-#     phone = serializers.CharField(label=_("Phone"))
-#     key_code = serializers.CharField(label=_("key_code"))
-#
-#     def validate(self, attrs):
-#         phone = attrs.get('phone')
-#         key_code = attrs.get('key_code')
-#
-#         if phone and :
-#             user = authenticate(request=self.context.get('request'),
-#                                 username=username, password=password)
-#
-#             # The authenticate call simply returns None for is_active=False
-#             # users. (Assuming the default ModelBackend authentication
-#             # backend.)
-#             if not user:
-#                 msg = _('Unable to log in with provided credentials.')
-#                 raise serializers.ValidationError(msg, code='authorization')
-#         else:
-#             msg = _('Must include "username" and "password".')
-#             raise serializers.ValidationError(msg, code='authorization')
-#
-#         attrs['user'] = user
-#         return attrs

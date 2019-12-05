@@ -35,7 +35,7 @@ class CustomAuthToken(ObtainAuthToken):
         # checkking  is the phone number  in the database??
 
         # maincode = random.randrange(1000, 10000, 1)
-        maincode = 1234;
+        maincode = '1234'
         if maincode == code:
             user = User.objects.create_user(username=phone, password=code)  # in the parameter don't have self!!
             token, create = Token.objects.get_or_create(user=user)
