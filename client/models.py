@@ -9,9 +9,6 @@ from django.db.models.signals import post_save
 class Customer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     like = models.ManyToManyField(to='Barber', related_name='customer')
-
-
-    isCompleted = models.BooleanField('',default=False);
     phone = models.CharField('contact phone', max_length=20)
     snn = models.CharField('national code', max_length=12)
     firstName = models.CharField('first name', max_length=20)
@@ -20,16 +17,16 @@ class Customer(models.Model):
         ('f', 'female'),
         ('m', 'male')
     )
-    gender = models.CharField(max_length=1,choices=genderStatus,default='m' )
-    credit = models.IntegerField(default=0)  # mojodi
+    gender = models.CharField(max_length=1, choices=genderStatus, default='m')
+    credit = models.IntegerField(default=0)
     image = models.ImageField()
-
     location = models.CharField(max_length=200)
+    isCompleted = models.BooleanField('', default=False)
+
 
 class LoginUser(models.Model):
-    code = models.CharField('verification code ',max_length = 6)
-    phone =models.CharField('logined phone',max_length = 12)
-
+    code = models.CharField('verification code ', max_length=6)
+    phone = models.CharField('logged in phone', max_length=12, unique=True)
 
 
 class Barber(models.Model):

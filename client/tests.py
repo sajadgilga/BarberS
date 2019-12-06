@@ -5,7 +5,7 @@ from django.test import TestCase, RequestFactory
 
 # Create your tests here.
 from client.models import Customer
-from client.views import CustomAuthToken
+from client.views.authentication import CustomAuthToken
 
 
 class LoginTest(TestCase):
