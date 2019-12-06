@@ -8,7 +8,20 @@ from django.utils.translation import gettext_lazy as _
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
-        fields = ['firstName', 'lastName', 'snn', 'phone', 'gender', 'like', 'credit', 'location']
+        fields = ['firstName', 'lastName', 'snn', 'gender', 'credit', 'location']
+        # phone deleted !!!!!!!!!!!
+
+        def create(self,validated_data):
+            return Customer(**validated_data)
+        def update(self,instance,validated_data):
+            instance.firstname = validated_data.get('firstname',instance.firstname)
+            instance.lastname = validated_data.get('lastname',instance.lastname)
+            instance.snn = validated_data.get('snn',instance.snn)
+            instance.gender = validated_data.get('gender',instance.gender)
+            instance.location = validated_data.get('location',instance.location)
+            instance.image = validated_data.get('image',instance.image)
+            instance.save()
+            return instance
 #         the fields had changed !!!!!!1
 
 

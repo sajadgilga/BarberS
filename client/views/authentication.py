@@ -11,6 +11,7 @@ from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
 from django.http import HttpResponseNotAllowed
 from django.shortcuts import redirect
+from client.serializers import CustomerSerializer
 
 ''' custom view for login and authentication .
     make a random 4 digits code 
@@ -47,7 +48,8 @@ class CustomAuthToken(ObtainAuthToken):
             return redirect(request.path + phone)  # or we can redirect to a get with a phone number
         maincode = login_user.code
         if maincode == code:
-            user = User.objects.get_or_create(username=phone)
+            user,temp = User.objects.get_or_create(username=phone,password='password')
+            customer = Customer.objects.create(user = user , phone = phone )
             token, create = Token.objects.get_or_create(user=user)
             return Response({'token': token.key,
                              'user_id': user.pk})
@@ -70,37 +72,20 @@ def signUp_view(request):
     # why we should give a self to a method ?
 
     phone = request.user.username
-
-    first_name = request.data['firstname']
-    last_name = request.data['lastname']
-    snn = request.data['snn']
-    gender = request.data['gender']
-    location = request.data['location']
-    image = request.data['image']
-
-    if first_name is None or last_name is None or snn is None or gender is None:
-        msg = {"status": 201}
-        return Response(msg, status=status.HTTP_400_BAD_REQUEST)
-
-    user = request.user
-    customer = Customer()
-    customer.user = user
-    customer.credit = 0
-    customer.firstName = first_name
-    customer.lastName = last_name
-    customer.snn = snn
-    customer.image = image
-    customer.gender = gender
-    customer.location = location
-    customer.phone = phone
-
+    customer = Customer.objects.filter(phone= phone ).first()
+    # customer.image = request.data['image']
     if customer is None:
         return Response(status=status.HTTP_400_BAD_REQUEST)
+    serializer = CustomerSerializer(data = request.data)
+    if serializer.is_valid():
+         customer=serializer.update(customer,serializer.validated_data)
+         customer.isCompleted = True
+         return Response(status.HTTP_200_OK)
 
     else:
-        customer.isCompleted = True
-        customer.save()
-        msg = {"status": 0}
-        return Response({msg})
+        return Response({str(serializer.errors)})
+        # return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
