@@ -13,14 +13,14 @@ from django.http import HttpResponseNotAllowed
 from django.shortcuts import redirect
 from client.serializers import CustomerSerializer
 
-''' custom view for login and authentication .
-    make a random 4 digits code 
-    use get method to detect a duplicates phone number and
-    post method to make a token
-'''
-
 
 class CustomAuthToken(ObtainAuthToken):
+    """ custom view for login and authentication .
+        make a random 4 digits code
+        use get method to detect a duplicates phone number and
+        post method to make a token
+    """
+
     def get(self, request, phone=None):
         login_user = LoginUser.objects.filter(phone=phone).first()
         maincode = str(random.randrange(1000, 10000, 1))
@@ -48,8 +48,10 @@ class CustomAuthToken(ObtainAuthToken):
             return redirect(request.path + phone)  # or we can redirect to a get with a phone number
         maincode = login_user.code
         if maincode == code:
-            user,temp = User.objects.get_or_create(username=phone,password='password')
-            customer = Customer.objects.create(user = user , phone = phone )
+            user = User.objects.filter(username=phone).first()
+            if not user:
+                user = User.objects.create(username=phone, password='password')
+            customer = Customer.objects.get_or_create(user=user, phone=phone, firstName="customer")
             token, create = Token.objects.get_or_create(user=user)
             return Response({'token': token.key,
                              'user_id': user.pk})
@@ -59,33 +61,24 @@ class CustomAuthToken(ObtainAuthToken):
             return Response({"false code!"})
 
 
-'''after authentication 
-set Profile  for complete the user information
-and save it to the data base 
-'''
-
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def signUp_view(request):
-    # how make a feild optional?
-    # why we should give a self to a method ?
+    """after authentication
+    set Profile  for complete the user information
+    and save it to the data base
+    """
 
     phone = request.user.username
-    customer = Customer.objects.filter(phone= phone ).first()
+    customer = Customer.objects.filter(phone=phone).first()
     # customer.image = request.data['image']
     if customer is None:
         return Response(status=status.HTTP_400_BAD_REQUEST)
-    serializer = CustomerSerializer(data = request.data)
+    serializer = CustomerSerializer(data=request.data)
     if serializer.is_valid():
-         customer=serializer.update(customer,serializer.validated_data)
-         customer.isCompleted = True
-         return Response(status.HTTP_200_OK)
+        customer = serializer.update(customer, serializer.validated_data)
+        customer.isCompleted = True
+        return Response(status.HTTP_200_OK)
 
     else:
         return Response({str(serializer.errors)})
-        # return Response(status=status.HTTP_400_BAD_REQUEST)
-
-
-
-

@@ -19,7 +19,7 @@ class Customer(models.Model):
     )
     gender = models.CharField(max_length=1, choices=genderStatus, default='m')
     credit = models.IntegerField(default=0)
-    image = models.ImageField()
+    image = models.ImageField(upload_to='customers', null=True)
     location = models.CharField(max_length=200)
     isCompleted = models.BooleanField('', default=False)
 
@@ -30,15 +30,16 @@ class LoginUser(models.Model):
 
 
 class Barber(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     phone = models.CharField('barber phone', max_length=20)
-    snn = models.CharField('national code', max_length=12)
-    firstName = models.CharField('first name', max_length=20)
-    lastName = models.CharField('last name', max_length=40)
-    image = models.ImageField()
-    address = models.CharField('address', max_length=200)
-    location = models.CharField('location', max_length=200)
-    barberName = models.CharField(max_length=40)
-    point = models.FloatField()
+    snn = models.CharField('national code', max_length=12, default='')
+    firstName = models.CharField('first name', max_length=20, default='')
+    lastName = models.CharField('last name', max_length=40, default='')
+    image = models.ImageField(null=True, upload_to='barbers')
+    address = models.CharField('address', max_length=200, default='')
+    location = models.CharField('location', max_length=200, default='')
+    barberName = models.CharField(max_length=40, default='')
+    point = models.FloatField(default=0)
     genderStatus = (
         ('f', 'female'),
         ('m', 'male')
@@ -47,7 +48,6 @@ class Barber(models.Model):
         max_length=1,
         choices=genderStatus,
         default='m'
-
     )
 
 
@@ -63,7 +63,7 @@ class ServiceSchema(models.Model):
     name = models.CharField('service name', max_length=30)
     serviceId = models.IntegerField()
     description = models.TextField()
-    icon = models.ImageField()  # is icon image?
+    icon = models.ImageField(upload_to='service-icons')  # is icon image?
 
 
 class PresentedService(models.Model):
@@ -81,7 +81,7 @@ class PresentedService(models.Model):
 class SampleWork(models.Model):
     barber = models.ForeignKey('Barber', on_delete=models.CASCADE)
     description = models.TextField()
-    image = models.ImageField()
+    image = models.ImageField(upload_to='barber_samples')
 
 
 class WorkDay(models.Model):

@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase, RequestFactory
 
 # Create your tests here.
-from client.models import Customer
+from client.models import Customer, Barber
 from client.views.authentication import CustomAuthToken
 
 
@@ -43,3 +43,18 @@ class LoginTest(TestCase):
         response = CustomAuthToken.as_view()(request)
         self.assertEqual(response.status_code, 200)
         print(response.data['token'])
+
+
+class MainPageTest(TestCase):
+    def setUp(self):
+        BASE_USERNAME = 'barber'
+        names = ['john', 'emilia', 'oxford', 'gholoom', 'ghobad', 'naseri', 'Lee']
+        for i in range(5):
+            user = User.objects.create(username=BASE_USERNAME + str(i), password='password')
+            barber = Barber()
+            barber.user = user
+            barber.firstName = names[randint(0, 6)]
+            barber.lastName = names[randint(0, 6)]
+            barber.phone = '00000'
+            barber.snn = '2-3904234'
+            barber.save()
