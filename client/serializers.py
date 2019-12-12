@@ -40,7 +40,7 @@ class BarberRecordSerializer(serializers.ModelSerializer):
     id = serializers.CharField(source='user.username')
     name = serializers.SerializerMethodField()
     image_url = serializers.SerializerMethodField()
-    location = serializers.SerializerMethodField()
+    distance = serializers.SerializerMethodField()
 
     def get_name(self, obj):
         return '{} {}'.format(obj.firstName, obj.lastName)
@@ -51,7 +51,7 @@ class BarberRecordSerializer(serializers.ModelSerializer):
         except:
             return ''
 
-    def get_location(self, obj):
+    def get_distance(self, obj):
         try:
             if self.context['user_location'] == '' or obj.location == '':
                 return None
@@ -66,8 +66,8 @@ class BarberRecordSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Barber
-        fields = ['id', 'name', 'image_url', 'location']
-        read_only_fields = ['id', 'name', 'image_url', 'location']
+        fields = ['id', 'name', 'image_url', 'distance']
+        read_only_fields = ['id', 'name', 'image_url', 'distance']
 
 
 class CommentSerializer(serializers.ModelSerializer):
