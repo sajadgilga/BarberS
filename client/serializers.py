@@ -1,6 +1,7 @@
 from django.contrib.gis.geos import Point
 from rest_framework import serializers
 
+from BarberS.settings import LOCATION_SEPARATOR
 from client.models import Customer, Barber, Comment, ServiceSchema, PresentedService, Service
 from django.contrib.auth import authenticate
 from django.utils.translation import gettext_lazy as _
@@ -55,8 +56,8 @@ class BarberRecordSerializer(serializers.ModelSerializer):
         try:
             if self.context['user_location'] == '' or obj.location == '':
                 return None
-            [user_long, user_lat] = self.context['user_location'].split(' -- ')
-            [barber_long, barber_lat] = obj.location.split(' -- ')
+            [user_long, user_lat] = self.context['user_location'].split(LOCATION_SEPARATOR)
+            [barber_long, barber_lat] = obj.location.split(LOCATION_SEPARATOR)
             p1 = Point(float(user_long), float(user_lat))
             p2 = Point(float(barber_long), float(barber_lat))
             d = p1.distance(p2)

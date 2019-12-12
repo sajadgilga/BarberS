@@ -13,6 +13,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from BarberS.settings import LOCATION_SEPARATOR
 from client.models import Barber, Customer
 from client.serializers import BarberSerializer, BarberRecordSerializer
 
@@ -60,8 +61,8 @@ class ClosestBarbers(APIView):
     def cal_dist(user_location, barber_location):
         if user_location == '' or barber_location == '':
             return -1
-        [user_long, user_lat] = user_location.split(' -- ')
-        [barber_long, barber_lat] = barber_location.split(' -- ')
+        [user_long, user_lat] = user_location.split(LOCATION_SEPARATOR)
+        [barber_long, barber_lat] = barber_location.split(LOCATION_SEPARATOR)
         p1 = Point(float(user_long), float(user_lat))
         p2 = Point(float(barber_long), float(barber_lat))
         d = p1.distance(p2)
