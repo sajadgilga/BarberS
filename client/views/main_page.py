@@ -74,7 +74,8 @@ class ClosestBarbers(APIView):
             customer = Customer.objects.get(user=user)
         except:
             return Response({"status": 302}, status=status.HTTP_404_NOT_FOUND)
-        queryset = sorted(self.queryset.all(), key=lambda barber: ClosestBarbers.cal_dist(customer.location, barber.location))
+        queryset = sorted(self.queryset.all(),
+                          key=lambda barber: ClosestBarbers.cal_dist(customer.location, barber.location))
 
         offset = request.GET.get('offset')
         if not offset:

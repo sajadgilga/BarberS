@@ -61,7 +61,7 @@ class Comment(models.Model):
 
 class ServiceSchema(models.Model):
     name = models.CharField('service name', max_length=30)
-    serviceId = models.IntegerField()
+    serviceId = models.IntegerField(primary_key=True)
     description = models.TextField()
     icon = models.ImageField(upload_to='service-icons')  # is icon image?
 
@@ -97,10 +97,5 @@ class Service(models.Model):
     service = models.ForeignKey(to='ServiceSchema', on_delete=models.CASCADE)
     cost = models.FloatField('cost of service')
 
-
-"""" automaticly make a token for new users"""
-
-# @receiver(post_save, sender=settings.AUTH_USER_MODEL)
-# def create_auth_token(sender, instance=None, created=False, **kwargs):
-#     if created:
-#         Token.objects.create(user=instance)
+    class Meta:
+        unique_together = (("barber", "service"),)
