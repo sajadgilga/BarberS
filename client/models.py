@@ -20,8 +20,17 @@ class Customer(models.Model):
     gender = models.CharField(max_length=1, choices=genderStatus, default='m')
     credit = models.IntegerField(default=0)
     image = models.ImageField(upload_to='customers', null=True)
-    location = models.CharField(max_length=200)
+    # location = models.CharField(max_length=200)
     isCompleted = models.BooleanField('', default=False)
+    ID = models.AutoField(primary_key=True, db_index=True)
+
+
+class Location(models.Model):
+    location = models.CharField(max_length=100, default='')
+    address = models.CharField(max_length=200, default='')
+    customer = models.ForeignKey('Customer', on_delete=models.CASCADE, related_name='location')
+    chosen = models.BooleanField(default=False)
+    ID = models.AutoField(primary_key=True)
 
 
 class LoginUser(models.Model):

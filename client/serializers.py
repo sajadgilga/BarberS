@@ -2,7 +2,7 @@ from django.contrib.gis.geos import Point
 from rest_framework import serializers
 
 from BarberS.settings import LOCATION_SEPARATOR
-from client.models import Customer, Barber, Comment, ServiceSchema, PresentedService, Service
+from client.models import Customer, Barber, Comment, ServiceSchema, PresentedService, Service, Location
 from django.contrib.auth import authenticate
 from django.utils.translation import gettext_lazy as _
 
@@ -10,7 +10,7 @@ from django.utils.translation import gettext_lazy as _
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
-        fields = ['firstName', 'lastName', 'snn', 'gender', 'credit', 'location']
+        fields = ['firstName', 'lastName', 'snn', 'gender', 'credit']
 
         # phone deleted !!!!!!!!!!!
 
@@ -22,13 +22,27 @@ class CustomerSerializer(serializers.ModelSerializer):
             instance.lastname = validated_data.get('lastname', instance.lastname)
             instance.snn = validated_data.get('snn', instance.snn)
             instance.gender = validated_data.get('gender', instance.gender)
-            instance.location = validated_data.get('location', instance.location)
             instance.image = validated_data.get('image', instance.image)
             instance.save()
             return instance
 
 
-#         the fields had changed !!!!!!1
+class LocationSerializer(serializers.ModelSerializer):
+    customerID = serializers.CharField(source='customer.ID')
+
+    class Meta:
+        model = Location
+        fields = ['location', 'address', 'customerID', 'ID']
+        read_only_fields = ['ID']
+
+    def create(self, validated_data):
+        customer = Customer.objects.filter(ID=validated_data.pop('customer')['ID']).first()
+        location = Location(**validated_data)
+        location.customer = customer
+        if len(customer.location.all()) == 0:
+            location.chosen = True
+        location.save()
+        return location
 
 
 class BarberSerializer(serializers.ModelSerializer):
@@ -61,7 +75,7 @@ class BarberRecordSerializer(serializers.ModelSerializer):
             p1 = Point(float(user_long), float(user_lat))
             p2 = Point(float(barber_long), float(barber_lat))
             d = p1.distance(p2)
-            return d * 10**5
+            return d * 10 ** 5
         except:
             return None
 

@@ -14,8 +14,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from BarberS.settings import LOCATION_SEPARATOR
-from client.models import Barber, Customer
-from client.serializers import BarberSerializer, BarberRecordSerializer
+from client.models import Barber, Customer, Location
+from client.serializers import BarberSerializer, BarberRecordSerializer, LocationSerializer
 
 
 class BestBarbers(APIView):
@@ -44,7 +44,9 @@ class BestBarbers(APIView):
             barbers = self.queryset[offset: offset + self.LIMIT]
         else:
             barbers = self.queryset[offset:]
-        barbers = self.serializer_class(barbers, many=True, context={"user_location": customer.location})
+        user_location = customer.location.filter(chosen=True).first()
+        barbers = self.serializer_class(barbers, many=True,
+                                        context={"user_location": user_location.location})
         return Response(barbers.data)
 
 
@@ -74,8 +76,9 @@ class ClosestBarbers(APIView):
             customer = Customer.objects.get(user=user)
         except:
             return Response({"status": 302}, status=status.HTTP_404_NOT_FOUND)
+        customer_location = customer.location.filter(chosen=True).first()
         queryset = sorted(self.queryset.all(),
-                          key=lambda barber: ClosestBarbers.cal_dist(customer.location, barber.location))
+                          key=lambda barber: ClosestBarbers.cal_dist(customer_location.location, barber.location))
 
         offset = request.GET.get('offset')
         if not offset:
@@ -88,5 +91,101 @@ class ClosestBarbers(APIView):
             barbers = queryset[offset: offset + self.LIMIT]
         else:
             barbers = queryset[offset:]
-        barbers = self.serializer_class(barbers, many=True, context={"user_location": customer.location})
+        barbers = self.serializer_class(barbers, many=True,
+                                        context={"user_location": customer_location.location})
         return Response(barbers.data)
+
+
+class SearchBarbers(APIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Barber.objects.all().order_by('presentedservice__service__cost')
+    serializer_class = BarberSerializer
+
+    def post(self, request):
+        """
+        Filter barbers based on price range and services
+        :param request:
+        :return:
+        """
+        pass
+
+    def get(self, request):
+        """
+        Search barbers with parameter search field
+        :param request:
+        :return:
+        """
+        pass
+
+
+class CustomerLocationHandler(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = LocationSerializer
+    queryset = Location.objects.all()
+
+    class Action:
+        GET = 0
+        CHANGE = 1
+
+    def post(self, request):
+        """
+        Add location to customer locations
+        :param request:
+        :return:
+        """
+        user = request.user
+        try:
+            customer = Customer.objects.get(user=user)
+        except:
+            return Response({"status": 302}, status=status.HTTP_404_NOT_FOUND)
+        data = request.data
+        serializer = self.serializer_class(data=
+                                           {"location": data['location'], "address": data['address'],
+                                            "customerID": customer.ID})
+        if not serializer.is_valid():
+            return Response({"status": 303}, status=status.HTTP_400_BAD_REQUEST)
+        location = serializer.create(serializer.validated_data)
+        return Response(status=status.HTTP_200_OK)
+
+    def get(self, request):
+        """
+        Change chosen location for customer
+        :param request:
+        :return:
+        """
+        user = request.user
+        try:
+            customer = Customer.objects.get(user=user)
+        except:
+            return Response({"status": 302}, status=status.HTTP_404_NOT_FOUND)
+        action = request.GET.get('action')
+        if not action:
+            action = self.Action.GET
+        action = int(action)
+        if action == self.Action.GET:
+            return self.get_customer_locations(customer)
+        elif action == self.Action.CHANGE:
+            return self.change_customer_chose_location(customer, request)
+        return Response()
+
+    def get_customer_locations(self, customer):
+        locations = self.queryset.filter(customer=customer)
+        serializer = self.serializer_class(locations, many=True)
+        return Response(serializer.data)
+
+    def change_customer_chose_location(self, customer, request):
+        lid = request.GET.get('id')
+        if not lid:
+            return Response({"status": 305}, status=status.HTTP_400_BAD_REQUEST)
+        lid = int(lid)
+        location = self.queryset.filter(customer=customer, chosen=True)
+        if location:
+            for l in location:
+                l.chosen = False
+                l.save()
+        location = self.queryset.filter(customer=customer, ID=lid).first()
+        if not location:
+            return Response({"status": 305}, status=status.HTTP_400_BAD_REQUEST)
+        location.chosen = True
+        location.save()
+        return Response()

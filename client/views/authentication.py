@@ -79,6 +79,5 @@ def signUp_view(request):
         customer = serializer.update(customer, serializer.validated_data)
         customer.isCompleted = True
         return Response(status.HTTP_200_OK)
-
     else:
         return Response({str(serializer.errors)})
