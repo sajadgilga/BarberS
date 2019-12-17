@@ -119,6 +119,13 @@ class SearchBarbers(APIView):
 
 
 class CustomerLocationHandler(APIView):
+    """
+    Location handler for customer
+    adds functionality as below:
+        - get customer locations
+        - change customer chosen location
+        - adds a new location to customer
+    """
     permission_classes = [IsAuthenticated]
     serializer_class = LocationSerializer
     queryset = Location.objects.all()
