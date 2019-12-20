@@ -99,7 +99,7 @@ class ClosestBarbers(APIView):
 class SearchBarbers(APIView):
     permission_classes = [IsAuthenticated]
     queryset = Barber.objects.all().order_by('presentedservice__service__cost')
-    serializer_class = BarberSerializer
+    serializer_class = BarberRecordSerializer
 
     def post(self, request):
         """
@@ -107,7 +107,11 @@ class SearchBarbers(APIView):
         :param request:
         :return:
         """
-        pass
+        user = request.user
+        try:
+            customer = Customer.objects.get(user=user)
+        except:
+            return Response({"status": 302}, status=status.HTTP_404_NOT_FOUND)
 
     def get(self, request):
         """
@@ -115,7 +119,18 @@ class SearchBarbers(APIView):
         :param request:
         :return:
         """
-        pass
+        user = request.user
+        try:
+            customer = Customer.objects.get(user=user)
+        except:
+            return Response({"status": 302}, status=status.HTTP_404_NOT_FOUND)
+        barber_name = request.GET.get('barber_name')
+        if not barber_name:
+            return Response({"status": 306}, status=status.HTTP_400_BAD_REQUEST)
+        barbers = self.queryset.filter(barberName__icontains=barber_name)
+        customer_location = customer.location.filter(chosen=True).first()
+        barbers = self.serializer_class(barbers, many=True, context={"user_location": customer_location.location})
+        return Response(barbers.data)
 
 
 class CustomerLocationHandler(APIView):
