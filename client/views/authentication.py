@@ -2,8 +2,8 @@ from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.response import Response
-from client.models import Customer, LoginUser
-from django.contrib.auth.models import User
+from client.models import Customer, LoginUser,Barber
+from django.contrib.auth.models import User,AnonymousUser
 import random
 from rest_framework.decorators import api_view, permission_classes, APIView, authentication_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -14,13 +14,15 @@ from django.shortcuts import redirect
 from client.serializers import CustomerSerializer
 
 
-class CustomAuthToken(ObtainAuthToken):
-    """ custom view for login and authentication .
-        make a random 4 digits code
-        use get method to detect a duplicates phone number and
-        post method to make a token
-    """
+''' custom view for login and authentication .
+    make a random 4 digits code 
+    use get method to detect a duplicates phone number and
+    post method to make a token
+    also for useres that loged out make a new token (in the post method )
+'''
 
+
+class CustomAuthToken(ObtainAuthToken):
     def get(self, request, phone=None):
         login_user = LoginUser.objects.filter(phone=phone).first()
         maincode = str(random.randrange(1000, 10000, 1))
@@ -40,6 +42,11 @@ class CustomAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         phone = request.data['phone']
         code = request.data['code']
+        temp_user = User.objects.filter(username=phone).first()
+        if temp_user  is not None :
+            token, create = Token.objects.get_or_create(user=temp_user)
+            return Response({'token': token.key,
+                             'user_id': temp_user.pk})
         # checkking  is the phone number  in the database??
         # maincode = 1234;
         login_user = LoginUser.objects.filter(phone=phone).first()
@@ -48,10 +55,8 @@ class CustomAuthToken(ObtainAuthToken):
             return redirect(request.path + phone)  # or we can redirect to a get with a phone number
         maincode = login_user.code
         if maincode == code:
-            user = User.objects.filter(username=phone).first()
-            if not user:
-                user = User.objects.create(username=phone, password='password')
-            customer = Customer.objects.get_or_create(user=user, phone=phone, firstName="customer")
+            user,temp = User.objects.get_or_create(username=phone,password='password')
+            customer = Customer.objects.create(user = user , phone = phone )
             token, create = Token.objects.get_or_create(user=user)
             return Response({'token': token.key,
                              'user_id': user.pk})
@@ -60,24 +65,15 @@ class CustomAuthToken(ObtainAuthToken):
             login_user.save()
             return Response({"false code!"})
 
-
-@api_view(['POST'])
+''' get method for logout . it takes a token in header and delete the token '''
 @permission_classes([IsAuthenticated])
-def signUp_view(request):
-    """after authentication
-    set Profile  for complete the user information
-    and save it to the data base
-    """
+@api_view(['GET'])
+def logout(request):
+    user = request.user
+    if user is AnonymousUser :
+        return Response("user not found ", status.HTTP_404_NOT_FOUND)
+    user.auth_token.delete()
+    return Response("succesfull loged out ",status=status.HTTP_200_OK)
 
-    phone = request.user.username
-    customer = Customer.objects.filter(phone=phone).first()
-    # customer.image = request.data['image']
-    if customer is None:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-    serializer = CustomerSerializer(data=request.data)
-    if serializer.is_valid():
-        customer = serializer.update(customer, serializer.validated_data)
-        customer.isCompleted = True
-        return Response(status.HTTP_200_OK)
-    else:
-        return Response({str(serializer.errors)})
+
+

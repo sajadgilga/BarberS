@@ -7,6 +7,7 @@ from django.db.models.signals import post_save
 
 
 class Customer(models.Model):
+    ID = models.AutoField(primary_key=True, null=False, default=-1)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     like = models.ManyToManyField(to='Barber', related_name='customer')
     phone = models.CharField('contact phone', max_length=20)
@@ -20,9 +21,8 @@ class Customer(models.Model):
     gender = models.CharField(max_length=1, choices=genderStatus, default='m')
     credit = models.IntegerField(default=0)
     image = models.ImageField(upload_to='customers', null=True)
-    # location = models.CharField(max_length=200)
+    location = models.CharField(max_length=200)
     isCompleted = models.BooleanField('', default=False)
-    ID = models.AutoField(primary_key=True, db_index=True)
 
 
 class Location(models.Model):

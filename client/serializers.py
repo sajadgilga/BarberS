@@ -107,3 +107,16 @@ class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
         fields = ['barber', 'service', 'cost']
+
+class BarberSerializer_out(serializers.ModelSerializer):
+    class Meta:
+        model = Barber
+        fields = ['firstName', 'lastName',  'gender', 'address', 'point', 'location','image']
+
+class CustomerSerializer_out(serializers.ModelSerializer):
+
+    class Meta:
+        model = Customer
+        fields =['firstName', 'lastName', 'snn', 'phone', 'gender', 'location','image','like']
+#         how to add like ?
+

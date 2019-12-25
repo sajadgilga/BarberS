@@ -2,13 +2,21 @@ from django.urls import path, include
 
 from client.views.authentication import *
 from client.views.main_page import *
+from client.views.profile import *
 
 app_name = 'client'
 urlpatterns = [
     path('login/<str:phone>/', CustomAuthToken.as_view()),
     path('login/', CustomAuthToken.as_view()),
-    path('signup/', signUp_view, name='sign up'),
+    path('change_profile/',customer_change_profile),
+    path('barber_profile/',barber_profile),
+    path('profile/',customer_profile),
     path('best_barbers/', BestBarbers.as_view()),
-    path('closest_barbers/', ClosestBarbers.as_view()),
-    path('location/', CustomerLocationHandler.as_view())
+    # path('closest_barbers/', ClosestBarbers.as_view()),
+    path('location/', CustomerLocationHandler.as_view()),
+    path('logout/',logout),
+    path('get_like/',get_like),
+    path('get_reserved_service/',get_reserved_servid),
+    path('discount/',discount),
+    path('barber_comment/<int:barber_id>/',barber_comment)
 ]
