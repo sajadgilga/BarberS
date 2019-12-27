@@ -39,9 +39,9 @@ class CommentAdmin(admin.ModelAdmin):
 
 @admin.register(PresentedService)
 class PresentedServiceAdmin(admin.ModelAdmin):
-    list_display = ('customer', 'barber', 'service', 'reserveTime', 'creationTime', 'status', 'payment', 'shift')
-    list_filter = ('customer', 'barber', 'service', 'reserveTime', 'creationTime', 'status', 'payment', 'shift')
-    search_fields = ('customer', 'barber', 'service', 'reserveTime', 'creationTime', 'status', 'payment', 'shift')
+    list_display = ('customer', 'barber', 'reserveTime', 'creationTime', 'status', 'payment', 'shift')
+    list_filter = ('customer', 'barber', 'reserveTime', 'creationTime', 'status', 'payment', 'shift')
+    search_fields = ('customer', 'barber', 'reserveTime', 'creationTime', 'status', 'payment', 'shift')
 
 
 @admin.register(SampleWork)
@@ -60,6 +60,6 @@ class ServiceAdmin(admin.ModelAdmin):
 
 @admin.register(WorkDay)
 class WorkDayAdmin(admin.ModelAdmin):
-    list_display = ('barber', 'morning_startTime', 'morning_endTime', 'afternoon_startTime', 'afternoon_endTime')
-    list_filter = ('barber', 'morning_startTime', 'morning_endTime', 'afternoon_startTime', 'afternoon_endTime')
-    search_fields = ('barber', 'morning_startTime', 'morning_endTime', 'afternoon_startTime', 'afternoon_endTime')
+    list_display = ('barber', 'week_days')
+    list_filter = ('barber', )
+    search_fields = ('barber', )

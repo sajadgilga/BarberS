@@ -133,3 +133,5 @@ MEDIA_URL = 'media/'
 STATIC_URL = '/static/'
 
 LOCATION_SEPARATOR = ' -- '
+
+MAX_RESERVE_LIMIT = 1

@@ -7,7 +7,6 @@ from django.db.models.signals import post_save
 
 
 class Customer(models.Model):
-    ID = models.AutoField(primary_key=True, null=False, default=-1)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     like = models.ManyToManyField(to='Barber', related_name='customer')
     phone = models.CharField('contact phone', max_length=20)
@@ -21,8 +20,9 @@ class Customer(models.Model):
     gender = models.CharField(max_length=1, choices=genderStatus, default='m')
     credit = models.IntegerField(default=0)
     image = models.ImageField(upload_to='customers', null=True)
-    location = models.CharField(max_length=200)
+    # location = models.CharField(max_length=200)
     isCompleted = models.BooleanField('', default=False)
+    ID = models.AutoField(primary_key=True, db_index=True, auto_created=True)
 
 
 class Location(models.Model):
@@ -30,7 +30,7 @@ class Location(models.Model):
     address = models.CharField(max_length=200, default='')
     customer = models.ForeignKey('Customer', on_delete=models.CASCADE, related_name='location')
     chosen = models.BooleanField(default=False)
-    ID = models.AutoField(primary_key=True)
+    ID = models.CharField(max_length=64, primary_key=True, auto_created=True)
 
 
 class LoginUser(models.Model):
@@ -78,12 +78,12 @@ class ServiceSchema(models.Model):
 class PresentedService(models.Model):
     barber = models.ForeignKey('Barber', on_delete=models.CASCADE)
     customer = models.ForeignKey('Customer', on_delete=models.CASCADE)
-    service = models.ForeignKey('Service', on_delete=models.CASCADE)
+    service = models.ManyToManyField(to='Service', related_name='presented_service')
     reserveTime = models.DateTimeField()
-    creationTime = models.DateTimeField()
+    creationTime = models.DateTimeField(auto_now_add=True)
 
     status = models.CharField(max_length=20)
-    payment = models.FloatField()
+    payment = models.FloatField(default=-1)
     shift = models.CharField(max_length=20)  # what is the type of shift
 
 
@@ -95,10 +95,17 @@ class SampleWork(models.Model):
 
 class WorkDay(models.Model):
     barber = models.ForeignKey('Barber', on_delete=models.CASCADE)
-    morning_startTime = models.TimeField()
-    morning_endTime = models.TimeField()
-    afternoon_startTime = models.TimeField()
-    afternoon_endTime = models.TimeField()
+    week_days = models.CharField(max_length=7, default='0000000')  # do not change the length of this !
+
+
+class Shift(models.Model):
+    shifts = (('m', 'morning'),
+              ('a', 'afternoon')
+              )
+    name = models.CharField(max_length=30, choices=shifts, default='m')
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    workday = models.ForeignKey('WorkDay', on_delete=models.CASCADE)
 
 
 class Service(models.Model):

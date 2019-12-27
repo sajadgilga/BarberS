@@ -86,9 +86,26 @@ class BarberRecordSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    customer_id = serializers.IntegerField()
+    barber_id = serializers.CharField()
+
     class Meta:
         model = Comment
-        fields = ['customer', 'barber', 'created_time', 'text']
+        fields = ['customer_id', 'barber_id', 'text']
+
+    def create(self, validated_data):
+        text = validated_data['text']
+        try:
+            customer = Customer.objects.filter(ID=validated_data['customer_id']).first()
+        except Exception as error:
+            return None
+        try:
+            barber = Barber.objects.filter(user__username=validated_data['barber_id']).first()
+        except Exception as error:
+            return None
+        comment = Comment.objects.create(customer=customer, barber=barber, text=text)
+        comment.save()
+        return comment
 
 
 class ServiceSchemaSerializer(serializers.ModelSerializer):
@@ -97,10 +114,27 @@ class ServiceSchemaSerializer(serializers.ModelSerializer):
         fields = ['name', 'serviceId', 'description', ]
 
 
+class ServiceSchemaSerilzerIn(serializers.Serializer):
+    serviceID_list = serializers.ListField(child=serializers.IntegerField())
+    barber_username = serializers.CharField(max_length=150)
+
+
 class PresentedServiceSerializer(serializers.ModelSerializer):
+    barber_username = serializers.CharField(source='barber.user.username')
+    customer_ID = serializers.IntegerField(source=Customer.ID)
+    serviceId_list = serializers.ListField(child=serializers.IntegerField(), source=ServiceSchema.serviceId)
+
     class Meta:
         model = PresentedService
-        fields = ['barber', 'customer', 'service', 'reserveTime', 'creationTime', 'status', 'payment', 'shift', ]
+        fields = ['barber_username', 'customer_ID', 'serviceId_list', 'reserveTime', 'creationTime', 'status',
+                  'payment',
+                  'shift']
+
+    def create(self, validated_data, barber, customer):
+        presented_service = PresentedService(customer=customer, barber=barber,
+                                             reserveTime=validated_data['reservedTime'], shift=validated_data['shift'],
+                                             status=validated_data['status'])
+        return presented_service
 
 
 class ServiceSerializer(serializers.ModelSerializer):
@@ -108,15 +142,15 @@ class ServiceSerializer(serializers.ModelSerializer):
         model = Service
         fields = ['barber', 'service', 'cost']
 
+
 class BarberSerializer_out(serializers.ModelSerializer):
     class Meta:
         model = Barber
-        fields = ['firstName', 'lastName',  'gender', 'address', 'point', 'location','image']
+        fields = ['firstName', 'lastName', 'gender', 'address', 'point', 'location', 'image']
+
 
 class CustomerSerializer_out(serializers.ModelSerializer):
-
     class Meta:
         model = Customer
-        fields =['firstName', 'lastName', 'snn', 'phone', 'gender', 'location','image','like']
+        fields = ['firstName', 'lastName', 'snn', 'phone', 'gender', 'location', 'image', 'like']
 #         how to add like ?
-
