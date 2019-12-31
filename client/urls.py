@@ -3,6 +3,7 @@ from django.urls import path, include
 from client.views.authentication import *
 from client.views.main_page import *
 from client.views.profile import *
+from client.views.payment import *
 
 app_name = 'client'
 urlpatterns = [
@@ -21,5 +22,8 @@ urlpatterns = [
     path('barber_comment/<str:barber_id>/', barber_comment),
     path('send_comment/', send_comment),
     path('customer_likes/', customer_likes),
-    path('add_like/', add_like)
+    path('add_like/', add_like),
+    path('request/',PaymentRequest.as_view()),
+    path('verify/',verify)
+
 ]

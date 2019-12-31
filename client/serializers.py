@@ -133,7 +133,8 @@ class PresentedServiceSerializer(serializers.ModelSerializer):
     def create(self, validated_data, barber, customer):
         presented_service = PresentedService(customer=customer, barber=barber,
                                              reserveTime=validated_data['reservedTime'], shift=validated_data['shift'],
-                                             status=validated_data['status'])
+                                             status=validated_data['status'],payment=validated_data['payment'])
+        presented_service.save()#todo :depends on  implemention maybe you need to delete this
         return presented_service
 
 

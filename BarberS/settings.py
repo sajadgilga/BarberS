@@ -9,12 +9,30 @@ https://docs.djangoproject.com/en/2.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.1/ref/settings/
 """
-
+from zeep import Client
 import os
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
+# # for gdal in windows
+# if os.name == 'nt':
+#     import platform
+#
+#     OSGEO4W = r"C:\OSGeo4W"
+#     # if '64' in platform.architecture()[0]:
+#     #     OSGEO4W += "64"
+#     assert os.path.isdir(OSGEO4W), "Directory does not exist: " + OSGEO4W
+#     os.environ['OSGEO4W_ROOT'] = OSGEO4W
+#     os.environ['GDAL_DATA'] = OSGEO4W + r"\share\gdal"
+#     os.environ['PROJ_LIB'] = OSGEO4W + r"\share\proj"
+#     os.environ['PATH'] = OSGEO4W + r"\bin;" + os.environ['PATH']
+#
+# # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+# BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# #
+# os.environ['PATH'] = os.path.join(BASE_DIR, r'env\Lib\site-packages\osgeo') + ';' + os.environ['PATH']
+# os.environ['PROJ_LIB'] = os.path.join(BASE_DIR, r'env3\Lib\site-packages\osgeo\data\proj') + ';' + os.environ[
+#     'PATH']
+# GEOS_LIBRARY_PATH = os.path.join(BASE_DIR, r'C:\OSGeo4W64\bin\geos_c.dll')
+# GDAL_LIBRARY_PATH = os.path.join(BASE_DIR, r'C:\OSGeo4W64\bin\\gdal204.dll')
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
@@ -135,3 +153,12 @@ STATIC_URL = '/static/'
 LOCATION_SEPARATOR = ' -- '
 
 MAX_RESERVE_LIMIT = 1
+
+
+# MERCHANT = 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX'
+# client = Client('https://www.zarinpal.com/pg/services/WebGate/wsdl')
+# amount = 1000  # Toman / Required
+# description = "توضیحات مربوط به تراکنش را در این قسمت وارد کنید"  # Required
+# email = 'email@example.com'  # Optional
+# mobile = '09123456789'  # Optional
+# CallbackURL = 'http://localhost:8000/verify/' # Important: need to edit for realy server.

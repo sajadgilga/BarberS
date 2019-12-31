@@ -85,6 +85,7 @@ class PresentedService(models.Model):
     status = models.CharField(max_length=20)
     payment = models.FloatField(default=-1)
     shift = models.CharField(max_length=20)  # what is the type of shift
+    authority = models.CharField(max_length=60,default=-1)
 
 
 class SampleWork(models.Model):
