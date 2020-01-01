@@ -55,7 +55,8 @@ class CustomAuthToken(ObtainAuthToken):
         maincode = login_user.code
         if maincode == code:
             user, temp = User.objects.get_or_create(username=phone, password='password')
-            customer = Customer.objects.create(user=user, phone=phone)
+            id = Customer.objects.count() + 1
+            customer = Customer.objects.create(user=user, phone=phone, customer_id='customer_{}'.format(id))
             token, create = Token.objects.get_or_create(user=user)
             return Response({'token': token.key,
                              'user_id': user.pk})

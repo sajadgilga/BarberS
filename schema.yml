@@ -1,0 +1,79 @@
+openapi: 3.0.2
+info:
+  title: ''
+  version: ''
+paths:
+  /client/login/{phone}/:
+    get:
+      operationId: RetrieveCustomAuthToken
+      parameters:
+      - name: phone
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+    post:
+      operationId: CreateCustomAuthToken
+      parameters:
+      - name: phone
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+  /client/login/:
+    get:
+      operationId: listCustomAuthTokens
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+    post:
+      operationId: CreateCustomAuthToken
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+  /client/best_barbers/:
+    get:
+      operationId: listBarbers
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+  /client/signup/:
+    post:
+      operationId: CreatesignUp_view
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''

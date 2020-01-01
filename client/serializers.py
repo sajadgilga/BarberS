@@ -28,7 +28,7 @@ class CustomerSerializer(serializers.ModelSerializer):
 
 
 class LocationSerializer(serializers.ModelSerializer):
-    customerID = serializers.CharField(source='customer.ID')
+    customerID = serializers.CharField(source='customer.customer_id')
 
     class Meta:
         model = Location
@@ -36,8 +36,8 @@ class LocationSerializer(serializers.ModelSerializer):
         read_only_fields = ['ID']
 
     def create(self, validated_data):
-        customer = Customer.objects.filter(ID=validated_data.pop('customer')['ID']).first()
-        location = Location(**validated_data)
+        customer = Customer.objects.filter(customer_id=validated_data.pop('customer')['customer_id']).first()
+        location = Location(**validated_data, ID='location_{}'.format(Location.objects.count() + 1))
         location.customer = customer
         if len(customer.location.all()) == 0:
             location.chosen = True
@@ -121,7 +121,7 @@ class ServiceSchemaSerilzerIn(serializers.Serializer):
 
 class PresentedServiceSerializer(serializers.ModelSerializer):
     barber_username = serializers.CharField(source='barber.user.username')
-    customer_ID = serializers.IntegerField(source=Customer.ID)
+    customer_ID = serializers.IntegerField(source=Customer.customer_id)
     serviceId_list = serializers.ListField(child=serializers.IntegerField(), source=ServiceSchema.serviceId)
 
     class Meta:

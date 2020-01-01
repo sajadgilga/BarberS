@@ -3,7 +3,7 @@ from random import randint
 
 from django.contrib.auth.models import User
 from django.contrib.gis.geos import Point
-from django.db.models import F, ExpressionWrapper, CharField
+from django.db.models import F, ExpressionWrapper, CharField, Q
 from django.utils.decorators import method_decorator
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -98,7 +98,7 @@ class ClosestBarbers(APIView):
 
 class SearchBarbers(APIView):
     permission_classes = [IsAuthenticated]
-    queryset = Barber.objects.all().order_by('presentedservice__service__cost')
+    queryset = Barber.objects.all()
     serializer_class = BarberRecordSerializer
 
     def post(self, request):
@@ -112,6 +112,9 @@ class SearchBarbers(APIView):
             customer = Customer.objects.get(user=user)
         except:
             return Response({"status": 302}, status=status.HTTP_404_NOT_FOUND)
+        customer_location = customer.location.filter(chosen=True).first()
+        queryset = sorted(self.queryset.all(),
+                          key=lambda barber: ClosestBarbers.cal_dist(customer_location.location, barber.location))
 
     def get(self, request):
         """
@@ -124,11 +127,15 @@ class SearchBarbers(APIView):
             customer = Customer.objects.get(user=user)
         except:
             return Response({"status": 302}, status=status.HTTP_404_NOT_FOUND)
+        customer_location = customer.location.filter(chosen=True).first()
+
         barber_name = request.GET.get('barber_name')
         if not barber_name:
             return Response({"status": 306}, status=status.HTTP_400_BAD_REQUEST)
-        barbers = self.queryset.filter(barberName__icontains=barber_name)
-        customer_location = customer.location.filter(chosen=True).first()
+        barbers = self.queryset.filter(Q(barberName__icontains=barber_name) | Q(firstName__icontains=barber_name) | Q(
+            lastName__icontains=barber_name))
+        barbers = sorted(barbers,
+                         key=lambda barber: ClosestBarbers.cal_dist(customer_location.location, barber.location))
         barbers = self.serializer_class(barbers, many=True, context={"user_location": customer_location.location})
         return Response(barbers.data)
 
@@ -163,7 +170,7 @@ class CustomerLocationHandler(APIView):
         data = request.data
         serializer = self.serializer_class(data=
                                            {"location": data['location'], "address": data['address'],
-                                            "customerID": customer.ID})
+                                            "customerID": customer.customer_id})
         if not serializer.is_valid():
             return Response({"status": 303}, status=status.HTTP_400_BAD_REQUEST)
         location = serializer.create(serializer.validated_data)
@@ -199,7 +206,7 @@ class CustomerLocationHandler(APIView):
         lid = request.GET.get('id')
         if not lid:
             return Response({"status": 305}, status=status.HTTP_400_BAD_REQUEST)
-        lid = int(lid)
+        lid = lid
         location = self.queryset.filter(customer=customer, chosen=True)
         if location:
             for l in location:

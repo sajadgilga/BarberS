@@ -22,7 +22,7 @@ class Customer(models.Model):
     image = models.ImageField(upload_to='customers', null=True)
     # location = models.CharField(max_length=200)
     isCompleted = models.BooleanField('', default=False)
-    ID = models.AutoField(primary_key=True, db_index=True, auto_created=True)
+    customer_id = models.CharField(max_length=48)
 
 
 class Location(models.Model):
@@ -30,7 +30,7 @@ class Location(models.Model):
     address = models.CharField(max_length=200, default='')
     customer = models.ForeignKey('Customer', on_delete=models.CASCADE, related_name='location')
     chosen = models.BooleanField(default=False)
-    ID = models.CharField(max_length=64, primary_key=True, auto_created=True)
+    ID = models.CharField(max_length=64, unique=True)
 
 
 class LoginUser(models.Model):
@@ -64,7 +64,7 @@ class Comment(models.Model):
     customer = models.ForeignKey('Customer', on_delete=models.CASCADE)
     barber = models.ForeignKey('Barber', on_delete=models.CASCADE)
 
-    created_time = models.DateTimeField(auto_now_add=True)
+    created_time = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     text = models.TextField()
 
 
@@ -79,8 +79,8 @@ class PresentedService(models.Model):
     barber = models.ForeignKey('Barber', on_delete=models.CASCADE)
     customer = models.ForeignKey('Customer', on_delete=models.CASCADE)
     service = models.ManyToManyField(to='Service', related_name='presented_service')
-    reserveTime = models.DateTimeField()
-    creationTime = models.DateTimeField(auto_now_add=True)
+    reserveTime = models.DateTimeField(null=True, blank=True)
+    creationTime = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     status = models.CharField(max_length=20)
     payment = models.FloatField(default=-1)
@@ -104,8 +104,8 @@ class Shift(models.Model):
               ('a', 'afternoon')
               )
     name = models.CharField(max_length=30, choices=shifts, default='m')
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+    start_time = models.TimeField(null=True, blank=True)
+    end_time = models.TimeField(null=True, blank=True)
     workday = models.ForeignKey('WorkDay', on_delete=models.CASCADE)
 
 

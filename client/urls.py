@@ -15,6 +15,7 @@ urlpatterns = [
     path('best_barbers/', BestBarbers.as_view()),
     path('closest_barbers/', ClosestBarbers.as_view()),
     path('location/', CustomerLocationHandler.as_view()),
+    path('search_barbers/', SearchBarbers.as_view()),
     path('logout/', logout),
     path('get_like/', get_like),
     path('get_reserved_service/', get_reserved_service),
