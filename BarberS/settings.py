@@ -141,10 +141,10 @@ LOCATION_SEPARATOR = ' -- '
 MAX_RESERVE_LIMIT = 1
 
 
-# MERCHANT = 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX'
-# client = Client('https://www.zarinpal.com/pg/services/WebGate/wsdl')
-# amount = 1000  # Toman / Required
-# description = "توضیحات مربوط به تراکنش را در این قسمت وارد کنید"  # Required
-# email = 'email@example.com'  # Optional
-# mobile = '09123456789'  # Optional
-# CallbackURL = 'http://localhost:8000/verify/' # Important: need to edit for realy server.
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+import dj_database_url
+
+prod_db = dj_database_url.config(conn_max_age=500)
+DATABASES['default'].update(prod_db)
+

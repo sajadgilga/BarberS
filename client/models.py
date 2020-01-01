@@ -110,7 +110,7 @@ class Shift(models.Model):
 
 
 class Service(models.Model):
-    barber = models.ForeignKey('Barber', on_delete=models.CASCADE)
+    barber = models.ForeignKey('Barber', on_delete=models.CASCADE, related_name='services')
     service = models.ForeignKey(to='ServiceSchema', on_delete=models.CASCADE)
     cost = models.FloatField('cost of service')
 

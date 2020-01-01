@@ -11,10 +11,12 @@ from client.models import Barber, Customer, PresentedService
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def barber_profile(request):
-    name = request.data['name']
-    if name is None: return Response("wrong name!", status=status.HTTP_400_BAD_REQUEST)
+    name = request.data['barber']
+    if name is None:
+        return Response("wrong name!", status=status.HTTP_400_BAD_REQUEST)
     barber = Barber.objects.filter(firstName=name).first()  # it must changed!! because first name is common
-    if barber is None:  return Response("no barber with this information", status=status.HTTP_400_BAD_REQUEST)
+    if barber is None:
+        return Response("no barber with this information", status=status.HTTP_400_BAD_REQUEST)
     serializer = BarberSerializer_out(barber)
 
     return Response(serializer.data)
@@ -27,7 +29,8 @@ def customer_profile(request):
     if user is None:
         return Response("user not found ", status=status.HTTP_400_BAD_REQUEST)
     customer = Customer.objects.filter(user=request.user).first()
-    if customer is None: return Response(status=status.HTTP_404_NOT_FOUND)
+    if customer is None:
+        return Response(status=status.HTTP_404_NOT_FOUND)
     serializer = CustomerSerializer_out(customer)
     return Response(serializer.data)
 

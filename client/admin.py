@@ -58,6 +58,13 @@ class ServiceAdmin(admin.ModelAdmin):
     search_fields = ('barber', 'service', 'cost',)
 
 
+@admin.register(ServiceSchema)
+class ServiceSchemaAdmin(admin.ModelAdmin):
+    list_display = ('name', 'serviceId', 'description', 'icon')
+    list_filter = ('name', 'serviceId', 'description',)
+    search_fields = ('name', 'serviceId', 'description',)
+
+
 @admin.register(WorkDay)
 class WorkDayAdmin(admin.ModelAdmin):
     list_display = ('barber', 'week_days')

@@ -3,7 +3,7 @@ from random import randint
 
 from django.contrib.auth.models import User
 from django.contrib.gis.geos import Point
-from django.db.models import F, ExpressionWrapper, CharField, Q
+from django.db.models import F, ExpressionWrapper, CharField, Q, Sum
 from django.utils.decorators import method_decorator
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -113,8 +113,24 @@ class SearchBarbers(APIView):
         except:
             return Response({"status": 302}, status=status.HTTP_404_NOT_FOUND)
         customer_location = customer.location.filter(chosen=True).first()
-        queryset = sorted(self.queryset.all(),
+        data = request.data
+        try:
+            serviceID, price_lower_limit, price_upper_limit = data['serviceID'], data['price_lower_limit'], data[
+                'price_upper_limit']
+        except:
+            return Response({"status": 306}, status=status.HTTP_400_BAD_REQUEST)
+        barbers = []
+        for barber in self.queryset.all():
+            services = barber.services.filter(service__serviceId__in=serviceID)
+            if not services:
+                continue
+            price = services.aggregate(Sum('cost'))['cost__sum']
+            if price_lower_limit <= price <= price_upper_limit:
+                barbers.append(barber)
+        queryset = sorted(barbers,
                           key=lambda barber: ClosestBarbers.cal_dist(customer_location.location, barber.location))
+        barbers = self.serializer_class(queryset, many=True, context={"user_location": customer_location.location})
+        return Response(barbers.data)
 
     def get(self, request):
         """
