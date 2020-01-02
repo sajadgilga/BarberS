@@ -14,7 +14,7 @@ def barber_profile(request):
     name = request.data['barber']
     if name is None:
         return Response("wrong name!", status=status.HTTP_400_BAD_REQUEST)
-    barber = Barber.objects.filter(firstName=name).first()  # it must changed!! because first name is common
+    barber = Barber.objects.filter(user__username=name).first()  # it must changed!! because first name is common
     if barber is None:
         return Response("no barber with this information", status=status.HTTP_400_BAD_REQUEST)
     serializer = BarberSerializer_out(barber)
@@ -55,6 +55,7 @@ def customer_change_profile(request):
     if serializer.is_valid():
         customer = serializer.update(customer, serializer.validated_data)
         customer.isCompleted = True
+        customer.save()
         return Response(status.HTTP_200_OK)
 
     else:
@@ -82,11 +83,12 @@ def get_reserved_service(request):
     user = request.user
     if user is None:
         return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
-    customer = Customer.objects.get(phone=user.username)
+    customer = Customer.objects.filter(phone=user.username).first()
     if customer.isCompleted is False:
         return Response({"you must compelet your information", }, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-    services = PresentedService.objects.filter(customer__user__username=user.username)
+    services = PresentedService.objects.filter(customer=customer)
     serializer = PresentedServiceSerializer(services, many=True)
+
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
