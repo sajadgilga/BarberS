@@ -1,4 +1,4 @@
-from django.contrib.gis.geos import Point
+# from django.contrib.gis.geos import Point
 from rest_framework import serializers
 
 from BarberS.settings import LOCATION_SEPARATOR
@@ -51,39 +51,39 @@ class BarberSerializer(serializers.ModelSerializer):
         fields = ['firstName', 'lastName', 'snn', 'phone', 'gender', 'address', 'point', 'location']
 
 
-class BarberRecordSerializer(serializers.ModelSerializer):
-    id = serializers.CharField(source='barber_id')
-    name = serializers.SerializerMethodField()
-    image_url = serializers.SerializerMethodField()
-    distance = serializers.SerializerMethodField()
-
-    def get_name(self, obj):
-        return '{} {}'.format(obj.firstName, obj.lastName)
-
-    def get_image_url(self, obj):
-        try:
-            return obj.image.url
-        except:
-            return ''
-
-    def get_distance(self, obj):
-        try:
-            if self.context['user_location'] == '' or obj.location == '':
-                return None
-            [user_long, user_lat] = self.context['user_location'].split(LOCATION_SEPARATOR)
-            [barber_long, barber_lat] = obj.location.split(LOCATION_SEPARATOR)
-            p1 = Point(float(user_long), float(user_lat))
-            p2 = Point(float(barber_long), float(barber_lat))
-            d = p1.distance(p2)
-            return d * 10 ** 5
-        except:
-            return None
-
-    class Meta:
-        model = Barber
-        fields = ['id', 'name', 'image_url', 'distance']
-        read_only_fields = ['id', 'name', 'image_url', 'distance']
-
+# class BarberRecordSerializer(serializers.ModelSerializer):
+#     id = serializers.CharField(source='barber_id')
+#     name = serializers.SerializerMethodField()
+#     image_url = serializers.SerializerMethodField()
+#     distance = serializers.SerializerMethodField()
+#
+#     def get_name(self, obj):
+#         return '{} {}'.format(obj.firstName, obj.lastName)
+#
+#     def get_image_url(self, obj):
+#         try:
+#             return obj.image.url
+#         except:
+#             return ''
+#
+#     def get_distance(self, obj):
+#         try:
+#             if self.context['user_location'] == '' or obj.location == '':
+#                 return None
+#             [user_long, user_lat] = self.context['user_location'].split(LOCATION_SEPARATOR)
+#             [barber_long, barber_lat] = obj.location.split(LOCATION_SEPARATOR)
+#             p1 = Point(float(user_long), float(user_lat))
+#             p2 = Point(float(barber_long), float(barber_lat))
+#             d = p1.distance(p2)
+#             return d * 10 ** 5
+#         except:
+#             return None
+#
+#     class Meta:
+#         model = Barber
+#         fields = ['id', 'name', 'image_url', 'distance']
+#         read_only_fields = ['id', 'name', 'image_url', 'distance']
+#
 
 class CommentSerializer(serializers.ModelSerializer):
     customer_id = serializers.IntegerField()
@@ -158,7 +158,7 @@ class ServiceSerializer(serializers.ModelSerializer):
 class BarberSerializer_out(serializers.ModelSerializer):
     class Meta:
         model = Barber
-        fields = ['firstName', 'lastName', 'gender', 'address', 'point', 'location', 'image']
+        fields = ['firstName', 'lastName', 'gender', 'address', 'point', 'location', 'image','sample_list','barberName']
 
 
 class CustomerSerializer_out(serializers.ModelSerializer):

@@ -12,11 +12,11 @@ urlpatterns = [
     path('change_profile/', customer_change_profile),
     path('barber_profile/', barber_profile),
     path('profile/', customer_profile),
-    path('best_barbers/', BestBarbers.as_view()),
-    path('closest_barbers/', ClosestBarbers.as_view()),
-    path('location/', CustomerLocationHandler.as_view()),
-    path('locations/', get_locations),
-    path('search_barbers/', SearchBarbers.as_view()),
+    # path('best_barbers/', BestBarbers.as_view()),
+    # path('closest_barbers/', ClosestBarbers.as_view()),
+    # path('location/', CustomerLocationHandler.as_view()),
+    # path('locations/', get_locations),
+    # path('search_barbers/', SearchBarbers.as_view()),
     path('logout/', logout),
     path('get_like/', get_like),
     path('get_reserved_service/', get_reserved_service),
@@ -26,6 +26,7 @@ urlpatterns = [
     path('customer_likes/', customer_likes),
     path('add_like/', add_like),
     path('request/', PaymentRequest.as_view()),
-    path('verify/', verify)
+    path('verify/', verify),
+    path('score/', score)
 
 ]
