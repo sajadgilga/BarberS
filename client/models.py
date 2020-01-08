@@ -49,6 +49,7 @@ class Barber(models.Model):
     location = models.CharField('location', max_length=200, default='')
     barberName = models.CharField(max_length=40, default='')
     point = models.FloatField(default=0)
+    point_counter = models.IntegerField(default=0)
     genderStatus = (
         ('f', 'female'),
         ('m', 'male')
