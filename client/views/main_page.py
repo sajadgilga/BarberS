@@ -6,7 +6,7 @@ from django.contrib.gis.geos import Point
 from django.db.models import F, ExpressionWrapper, CharField, Q, Sum
 from django.utils.decorators import method_decorator
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import JSONRenderer
@@ -234,3 +234,17 @@ class CustomerLocationHandler(APIView):
         location.chosen = True
         location.save()
         return Response()
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_locations(request):
+    try:
+        user = request.user
+        customer = Customer.objects.filter(user=user).first()
+        if not customer:
+            return Response({"status": 305}, status=status.HTTP_400_BAD_REQUEST)
+        locations = LocationSerializer(customer.location.all(), many=True)
+        return Response(locations.data)
+    except:
+        return Response({"status": 310}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
