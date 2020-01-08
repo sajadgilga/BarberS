@@ -17,6 +17,7 @@ from zeep import Client as client
 class PaymentRequest(APIView):
     permission_classes = [IsAuthenticated]
     payment = 0
+
     def post(self, request):
 
         user = request.user

@@ -52,7 +52,7 @@ class BarberSerializer(serializers.ModelSerializer):
 
 
 class BarberRecordSerializer(serializers.ModelSerializer):
-    id = serializers.CharField(source='user.username')
+    id = serializers.CharField(source='barber_id')
     name = serializers.SerializerMethodField()
     image_url = serializers.SerializerMethodField()
     distance = serializers.SerializerMethodField()

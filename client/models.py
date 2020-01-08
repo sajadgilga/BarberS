@@ -58,6 +58,7 @@ class Barber(models.Model):
         choices=genderStatus,
         default='m'
     )
+    barber_id = models.CharField(max_length=32, unique=True)
 
 
 class Comment(models.Model):

@@ -11,10 +11,10 @@ from client.models import Barber, Customer, PresentedService
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def barber_profile(request):
-    name = request.data['barber']
-    if name is None:
-        return Response("wrong name!", status=status.HTTP_400_BAD_REQUEST)
-    barber = Barber.objects.filter(firstName=name).first()  # it must changed!! because first name is common
+    id = request.data['barber']
+    if id is None:
+        return Response("wrong id!", status=status.HTTP_400_BAD_REQUEST)
+    barber = Barber.objects.filter(barber_id=id).first()  # it must changed!! because first name is common
     if barber is None:
         return Response("no barber with this information", status=status.HTTP_400_BAD_REQUEST)
     serializer = BarberSerializer_out(barber)
@@ -70,7 +70,7 @@ def get_like(request):
         return Response({"user not found "}, status=status.HTTP_400_BAD_REQUEST)
     customer = Customer.objects.get(phone=user.username)
     if customer.isCompleted is False:
-        return Response({"you must compelet your information", }, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return Response({"you must complete your information", }, status=status.HTTP_405_METHOD_NOT_ALLOWED)
     barbers = Barber.objects.filter(customer__user__username=user.username)
     serializer = BarberSerializer_out(barbers, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
@@ -146,7 +146,7 @@ def send_comment(request):
 
 
 '''customer like api for showing liked barbers by customer 
-it ruturns barbers infromaation'''
+it returns barbers information'''
 
 
 @permission_classes([IsAuthenticated])
@@ -171,7 +171,7 @@ it gets barber username as parameter and no return value'''
 @api_view(['POST'])
 def add_like(request):
     user = request.user
-    barber_username = request.data['barber_username']
+    barber_username = request.data['barber']
     barber = Barber.objects.filter(user__username=barber_username).first()
     if barber is None:
         return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)

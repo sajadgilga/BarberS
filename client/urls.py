@@ -24,7 +24,7 @@ urlpatterns = [
     path('send_comment/', send_comment),
     path('customer_likes/', customer_likes),
     path('add_like/', add_like),
-    path('request/',PaymentRequest.as_view()),
-    path('verify/',verify)
+    path('request/', PaymentRequest.as_view()),
+    path('verify/', verify)
 
 ]
