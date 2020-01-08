@@ -70,7 +70,7 @@ def get_like(request):
         return Response({"user not found "}, status=status.HTTP_400_BAD_REQUEST)
     customer = Customer.objects.get(phone=user.username)
     if customer.isCompleted is False:
-        return Response({"you must compelet your information", }, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return Response({"you must complete your information", }, status=status.HTTP_405_METHOD_NOT_ALLOWED)
     barbers = Barber.objects.filter(customer__user__username=user.username)
     serializer = BarberSerializer_out(barbers, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
@@ -84,7 +84,7 @@ def get_reserved_service(request):
         return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
     customer = Customer.objects.get(phone=user.username)
     if customer.isCompleted is False:
-        return Response({"you must compelet your information", }, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return Response({"you must complete your information", }, status=status.HTTP_405_METHOD_NOT_ALLOWED)
     services = PresentedService.objects.filter(customer__user__username=user.username)
     serializer = PresentedServiceSerializer(services, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
@@ -146,7 +146,7 @@ def send_comment(request):
 
 
 '''customer like api for showing liked barbers by customer 
-it ruturns barbers infromaation'''
+it returns barbers information'''
 
 
 @permission_classes([IsAuthenticated])
