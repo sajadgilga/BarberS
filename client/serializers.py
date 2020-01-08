@@ -121,20 +121,31 @@ class ServiceSchemaSerilzerIn(serializers.Serializer):
 
 class PresentedServiceSerializer(serializers.ModelSerializer):
     barber_username = serializers.CharField(source='barber.user.username')
-    customer_ID = serializers.IntegerField(source=Customer.customer_id)
-    serviceId_list = serializers.ListField(child=serializers.IntegerField(), source=ServiceSchema.serviceId)
+    customer_id = serializers.CharField(source='customer.customer_id')
+    serviceId_list = serializers.SerializerMethodField()
 
     class Meta:
         model = PresentedService
-        fields = ['barber_username', 'customer_ID', 'serviceId_list', 'reserveTime', 'creationTime', 'status',
+        fields = ['barber_username', 'customer_id', 'serviceId_list', 'reserveTime', 'creationTime', 'status',
                   'payment',
                   'shift']
+
+    def get_serviceId_list(self, obj):
+        all = obj.service.all()
+        try:
+            l = []
+            for i in all:
+                id = i.service.serviceId
+                l.append(id)
+            return l
+        except Exception as error:
+            return error
 
     def create(self, validated_data, barber, customer):
         presented_service = PresentedService(customer=customer, barber=barber,
                                              reserveTime=validated_data['reservedTime'], shift=validated_data['shift'],
-                                             status=validated_data['status'],payment=validated_data['payment'])
-        presented_service.save()#todo :depends on  implemention maybe you need to delete this
+                                             status=validated_data['status'], payment=validated_data['payment'])
+        presented_service.save()  # todo :depends on  implemention maybe you need to delete this
         return presented_service
 
 
