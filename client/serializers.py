@@ -23,6 +23,7 @@ class CustomerSerializer(serializers.ModelSerializer):
             instance.snn = validated_data.get('snn', instance.snn)
             instance.gender = validated_data.get('gender', instance.gender)
             instance.image = validated_data.get('image', instance.image)
+            instance.email = validated_data.get('email',instance.email)
             instance.save()
             return instance
 
@@ -126,7 +127,7 @@ class ServiceSchemaSerilzerIn(serializers.Serializer):
 
 
 class PresentedServiceSerializer(serializers.ModelSerializer):
-    barber_id = serializers.CharField(source='barber.babrer_id')
+    barber_id = serializers.CharField(source='barber.barber_id')
     customer_id = serializers.CharField(source='customer.customer_id')
     serviceId_list = serializers.SerializerMethodField()
 

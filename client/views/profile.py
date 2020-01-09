@@ -84,13 +84,25 @@ def customer_change_profile(request):
 @permission_classes([IsAuthenticated])
 @api_view(['GET'])
 def get_like(request):
+    limit = 10
+    offset = request.GET.get('offset')
+    if not offset:
+        offset = 0
+    offset = limit * int(offset)
     user = request.user
     if user is None:
         return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
     customer = Customer.objects.filter(user=user).first()
     if customer.isCompleted is False:
         return Response({"status": 401}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-    barbers = Barber.objects.filter(customer__user=user)
+    queryset = Barber.objects.filter(customer__user=user)
+    size = queryset.count()
+    if offset > size:
+        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
+    elif offset + limit < size:
+        barbers = queryset[offset: offset + limit]
+    else:
+        barbers = queryset[offset:]
     serializer = BarberSerializer_out(barbers, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -98,13 +110,25 @@ def get_like(request):
 @permission_classes([IsAuthenticated])
 @api_view(['GET'])
 def get_reserved_service(request):
+    limit = 10
+    offset = request.GET.get('offset')
+    if not offset:
+        offset = 0
+    offset = limit * int(offset)
     user = request.user
     if user is None:
         return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
     customer = Customer.objects.get(user=user)
     if customer.isCompleted is False:
         return Response({"status": 401}, status=status.HTTP_401_UNAUTHORIZED)
-    services = PresentedService.objects.filter(customer__user=user)
+    queryset = PresentedService.objects.filter(customer__user=user)
+    size = queryset.count()
+    if offset > size:
+        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
+    elif offset + limit < size:
+        services = queryset[offset: offset + limit]
+    else:
+        services = queryset[offset:]
     serializer = PresentedServiceSerializer(services, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -133,6 +157,11 @@ def discount(request):
 @permission_classes([IsAuthenticated])
 @api_view(['GET'])
 def barber_comment(request, barber_id):
+    limit = 5
+    offset = request.GET.get('offset')
+    if not offset:
+        offset = 0
+    offset = limit * int(offset)
     user = request.user
     if user is None:
         return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
@@ -147,9 +176,16 @@ def barber_comment(request, barber_id):
     if barber is None:
         return Response({"status": 400}, status=status.HTTP_404_NOT_FOUND)  # barber not exists:status 400
     try:
-        comment = Comment.objects.filter(barber=barber).order_by('created_time')
+        queryset = Comment.objects.filter(barber=barber).order_by('created_time')
     except:
         return Response({"status": 400}, status=status.HTTP_404_NOT_FOUND)
+    size = queryset.count()
+    if offset > size:
+        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
+    elif offset + limit < size:
+        comment = queryset[offset: offset + limit]
+    else:
+        comment = queryset[offset:]
     serializer = CommentSerializer(comment, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -186,10 +222,17 @@ def send_comment(request):
 it returns barbers information'''
 
 
+
 @permission_classes([IsAuthenticated])
 @api_view(['GET'])
 def customer_likes(request):
+    limit = 10
     user = request.user
+    offset = request.GET.get('offset')
+    if not offset:
+        offset = 0
+    offset = limit * int(offset)
+
     if user is None:
         return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
     customer = Customer.objects.filter(user=user).first()
@@ -197,7 +240,14 @@ def customer_likes(request):
         return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
     if customer.isCompleted is False:
         return Response({"status": 401}, status=status.HTTP_401_UNAUTHORIZED)
-    barbers = customer.like.all()
+    queryset = customer.like.all()
+    size = queryset.count()
+    if offset > size:
+        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
+    elif offset + limit < size:
+        barbers = queryset[offset: offset + limit]
+    else:
+        barbers = queryset[offset:]
     serializer = BarberSerializer_out(barbers, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -249,8 +299,8 @@ def score(request):
         point = request.data['point']
     except:
         return Response({"status": 400}, status=status.HTTP_404_NOT_FOUND)
-    if point > point_limit :
-        return Response({"status":403},status=status.HTTP_400_BAD_REQUEST)
+    if point > point_limit:
+        return Response({"status": 403}, status=status.HTTP_400_BAD_REQUEST)
     barber = Barber.objects.filter(barber_id=barber_id).first()
     if barber is None:
         return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)

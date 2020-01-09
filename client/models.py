@@ -12,6 +12,7 @@ class Customer(models.Model):
     phone = models.CharField('contact phone', max_length=20)
     snn = models.CharField('national code', max_length=12)
     firstName = models.CharField('first name', max_length=20)
+    email = models.EmailField()
     lastName = models.CharField('last name', max_length=40)
     genderStatus = (
         ('f', 'female'),
