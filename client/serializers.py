@@ -100,7 +100,7 @@ class CommentSerializer(serializers.ModelSerializer):
         except Exception as error:
             return None
         try:
-            barber = Barber.objects.filter(user__username=validated_data['barber_id']).first()
+            barber = Barber.objects.filter(barber_id=validated_data['barber_id']).first()
         except Exception as error:
             return None
         comment = Comment.objects.create(customer=customer, barber=barber, text=text)
