@@ -134,7 +134,7 @@ def barber_comment(request, barber_id):
         return Response({"status": 401}, status=status.HTTP_401_UNAUTHORIZED)
     if barber_id is None:
         Response({"status": 402}, status.HTTP_400_BAD_REQUEST)  # barber id does not send
-    barber = Barber.objects.filter(user__username=barber_id).first()
+    barber = Barber.objects.filter(barber_id=barber_id).first()
     if barber is None:
         return Response({"status": 400}, status=status.HTTP_404_NOT_FOUND)  # barber not exists:status 400
     try:
