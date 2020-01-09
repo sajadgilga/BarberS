@@ -167,7 +167,7 @@ def send_comment(request):
         if comment is None:
             return Response({"status": 402}, status=status.HTTP_400_BAD_REQUEST)
     else:
-        return Response({"status": 402}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"status": 403}, status=status.HTTP_400_BAD_REQUEST)
     return Response(status=status.HTTP_200_OK)
 
 
