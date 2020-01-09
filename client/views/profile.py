@@ -199,8 +199,8 @@ it gets barber username as parameter and no return value'''
 @api_view(['POST'])
 def add_like(request):
     user = request.user
-    barber_username = request.data['barber_username']
-    barber = Barber.objects.filter(user__username=barber_username).first()
+    barber_username = request.data['barber']
+    barber = Barber.objects.filter(barber_id=barber_username).first()
     if barber is None:
         return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
     if user is None:
