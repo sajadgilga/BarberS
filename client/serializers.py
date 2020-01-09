@@ -86,7 +86,7 @@ class BarberRecordSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    customer_id = serializers.IntegerField()
+    customer_id = serializers.CharField()
     barber_id = serializers.CharField()
 
     class Meta:
