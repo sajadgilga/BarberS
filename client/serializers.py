@@ -91,7 +91,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ['customer_id', 'barber_id', 'text']
+        fields = ['barber_id', 'text']
 
     def create(self, validated_data):
         text = validated_data['text']
