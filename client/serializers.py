@@ -86,11 +86,12 @@ class BarberRecordSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    customer_id = serializers.IntegerField()
     barber_id = serializers.CharField()
 
     class Meta:
         model = Comment
-        fields = ['barber_id', 'text']
+        fields = ['customer_id', 'barber_id', 'text']
 
     def create(self, validated_data):
         text = validated_data['text']
