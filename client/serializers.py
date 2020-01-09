@@ -2,7 +2,7 @@ from django.contrib.gis.geos import Point
 from rest_framework import serializers
 
 from BarberS.settings import LOCATION_SEPARATOR
-from client.models import Customer, Barber, Comment, ServiceSchema, PresentedService, Service, Location
+from client.models import Customer, Barber, Comment, ServiceSchema, PresentedService, Service, Location, SampleWork
 from django.contrib.auth import authenticate
 from django.utils.translation import gettext_lazy as _
 
@@ -86,7 +86,7 @@ class BarberRecordSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    customer_id = serializers.CharField()
+    customer_id = serializers.IntegerField()
     barber_id = serializers.CharField()
 
     class Meta:
@@ -96,11 +96,11 @@ class CommentSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         text = validated_data['text']
         try:
-            customer = Customer.objects.filter(customer_id=validated_data['customer_id']).first()
+            customer = Customer.objects.filter(ID=validated_data['customer_id']).first()
         except Exception as error:
             return None
         try:
-            barber = Barber.objects.filter(barber_id=validated_data['barber_id']).first()
+            barber = Barber.objects.filter(user__username=validated_data['barber_id']).first()
         except Exception as error:
             return None
         comment = Comment.objects.create(customer=customer, barber=barber, text=text)
@@ -156,15 +156,31 @@ class ServiceSerializer(serializers.ModelSerializer):
 
 
 class BarberSerializer_out(serializers.ModelSerializer):
+    sample_list = serializers.SerializerMethodField()
+
     class Meta:
         model = Barber
-        fields = ['firstName', 'lastName', 'gender', 'address', 'point', 'location', 'image',
-                  # 'sample_list',
+        fields = ['firstName', 'lastName', 'gender', 'address', 'point', 'location', 'image', 'sample_list',
                   'barberName']
+
+    def get_sample_list(self, obj):
+        list = SampleWork.objects.filter(barber=obj)
+        return SampleWorkSerializer(list, many=True).data
 
 
 class CustomerSerializer_out(serializers.ModelSerializer):
+    likes = serializers.SerializerMethodField()
+
     class Meta:
         model = Customer
-        fields = ['firstName', 'lastName', 'snn', 'phone', 'gender', 'location', 'image', 'like']
-#         how to add like ?
+        fields = ['firstName', 'lastName', 'snn', 'phone', 'gender', 'location', 'image', 'likes']
+
+    def get_likes(self, obj):
+        list = obj.like.all()
+        return BarberSerializer_out(list, many=True).data
+
+
+class SampleWorkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SampleWork
+        fields = ['image']

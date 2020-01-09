@@ -11,18 +11,21 @@ from client.models import Barber, Customer, PresentedService
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def barber_profile(request):
-    user = request.user
-    if user is None:
-        return Response("user not found ", status=status.HTTP_400_BAD_REQUEST)
-    customer = Customer.objects.filter(user=request.user).first()
-    if customer is None:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-    if customer.isCompleted is False:
-        return Response({"status": 401}, status=status.HTTP_401_UNAUTHORIZED)
-    id = request.data['barber']
-    if id is None:
-        return Response("wrong id!", status=status.HTTP_400_BAD_REQUEST)
-    barber = Barber.objects.filter(barber_id=id).first()  # it must changed!! because first name is common
+    # user = request.user
+    # if user is None:
+    #     return Response("user not found ", status=status.HTTP_400_BAD_REQUEST)
+    # customer = Customer.objects.filter(user=request.user).first()
+    # if customer is None:
+    #     return Response(status=status.HTTP_404_NOT_FOUND)
+    # if customer.isCompleted is False :
+    #     return Response({"status":401},status=status.HTTP_401_UNAUTHORIZED)
+    try:
+        barber_id = request.data['barber']
+    except:
+        return Response({"status": 402}, status=status.HTTP_400_BAD_REQUEST)
+    if barber_id is None:
+        return Response({"status":400}, status=status.HTTP_400_BAD_REQUEST)
+    barber = Barber.objects.filter(barber_id=barber_id).first()  # it must changed!! because first name is common
     if barber is None:
         return Response("no barber with this information", status=status.HTTP_400_BAD_REQUEST)
     serializer = BarberSerializer_out(barber)
@@ -55,6 +58,7 @@ and save it to the data base
 @permission_classes([IsAuthenticated])
 def customer_change_profile(request):
     # how make a field optional? set a default value or set required = false
+
     phone = request.user.username
     customer = Customer.objects.filter(phone=phone).first()
     # customer.image = request.data['image']
@@ -80,7 +84,7 @@ def get_like(request):
         return Response({"user not found "}, status=status.HTTP_400_BAD_REQUEST)
     customer = Customer.objects.filter(phone=user.username).first()
     if customer.isCompleted is False:
-        return Response({"status": 401}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return Response({"status":401 }, status=status.HTTP_405_METHOD_NOT_ALLOWED)
     barbers = Barber.objects.filter(customer__user__username=user.username)
     serializer = BarberSerializer_out(barbers, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
@@ -130,11 +134,11 @@ def barber_comment(request, barber_id):
     customer = Customer.objects.filter(user=request.user).first()
     if customer is None:
         return Response(status=status.HTTP_404_NOT_FOUND)
-    if customer.isCompleted is False:
-        return Response({"status": 401}, status=status.HTTP_401_UNAUTHORIZED)
+    if customer.isCompleted is False :
+        return Response({"status":401},status=status.HTTP_401_UNAUTHORIZED)
     if barber_id is None:
         Response({"status": 402}, status.HTTP_400_BAD_REQUEST)  # barber id does not send
-    barber = Barber.objects.filter(barber_id=barber_id).first()
+    barber = Barber.objects.filter(user__username=barber_id).first()
     if barber is None:
         return Response({"status": 400}, status=status.HTTP_404_NOT_FOUND)  # barber not exists:status 400
     try:
@@ -159,15 +163,15 @@ def send_comment(request):
     customer = Customer.objects.filter(user=request.user).first()
     if customer is None:
         return Response(status=status.HTTP_404_NOT_FOUND)
-    if customer.isCompleted is False:
-        return Response({"status": 401}, status=status.HTTP_401_UNAUTHORIZED)
+    if customer.isCompleted is False :
+        return Response({"status":401},status=status.HTTP_401_UNAUTHORIZED)
     serializer = CommentSerializer(data=request.data)
     if serializer.is_valid():
         comment = serializer.create(serializer.validated_data)
         if comment is None:
             return Response({"status": 402}, status=status.HTTP_400_BAD_REQUEST)
     else:
-        return Response({"status": 403}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"status": 402}, status=status.HTTP_400_BAD_REQUEST)
     return Response(status=status.HTTP_200_OK)
 
 
@@ -183,7 +187,7 @@ def customer_likes(request):
         return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
     customer = Customer.objects.filter(phone=user.username).first()
     if customer is None:
-        return Response({"status": 402}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
     if customer.isCompleted is False:
         return Response({"status": 401}, status=status.HTTP_401_UNAUTHORIZED)
     barbers = customer.like.all()
@@ -207,16 +211,13 @@ def add_like(request):
         return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
     customer = Customer.objects.filter(phone=user.username).first()
     if customer is None:
-        return Response({"status": 402}, status=status.HTTP_400_BAD_REQUEST)
-    if customer.isCompleted is False:
-        return Response({"status": 401}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
+    if customer.isCompleted is False :
+        return Response({"status":401},status=status.HTTP_401_UNAUTHORIZED)
     customer.like.add(barber)
     return Response(status=status.HTTP_200_OK)
 
-
 '''api for set a point for a barber and update the average of barbers points'''
-
-
 @permission_classes([IsAuthenticated])
 @api_view(['POST'])
 def score(request):
@@ -226,23 +227,30 @@ def score(request):
     customer = Customer.objects.filter(user=user).first()
     if customer is None:
         return Response(status=status.HTTP_404_NOT_FOUND)
-    if customer.isCompleted is False:
-        return Response({"status": 401}, status=status.HTTP_401_UNAUTHORIZED)
+    if customer.isCompleted is False :
+        return Response({"status":401},status=status.HTTP_401_UNAUTHORIZED)
     try:
         barber_id = request.data['barber_id']
         point = request.data['point']
-    except:
-        return Response({"status": 400}, status=status.HTTP_404_NOT_FOUND)
+    except :
+        return Response({"status":400},status=status.HTTP_404_NOT_FOUND)
     barber = Barber.objects.filter(barber_id=barber_id).first()
-    if barber is None:
+    if barber is None :
         return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
     barber_point = barber.point
     point_counter = barber.point_counter
-    barber_point = (float)(point + barber_point * point_counter) / (point_counter + 1)
-    barber.point_counter = point_counter + 1
-    barber.point = barber_point
+    barber_point  = (float)( point +barber_point*point_counter)/(point_counter+1)
+    barber.point_counter = point_counter +1
+    barber.point= barber_point
     barber.save()
-    return Response({"status": 200}, status=status.HTTP_200_OK)
+    return Response({"status":200},status=status.HTTP_200_OK)
+
+
+
+
+
 
 # 400 not exist
 # 401 not allowed (profiled must complete)
+# 402 bad input like post method with wrong body !
+# 403 not validated data
