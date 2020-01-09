@@ -65,7 +65,7 @@ def customer_change_profile(request):
         customer = serializer.update(customer, serializer.validated_data)
         customer.isCompleted = True
         customer.save()
-        return Response(status.HTTP_200_OK)
+        return Response(status=status.HTTP_200_OK)
 
     else:
         # return Response({str(serializer.errors)})
