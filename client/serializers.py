@@ -86,8 +86,8 @@ class BarberRecordSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    customer_id = serializers.IntegerField()
-    barber_id = serializers.CharField()
+    customer_id = serializers.CharField(source='customer.customer_id')
+    barber_id = serializers.CharField(source='barber.barber_id')
 
     class Meta:
         model = Comment
@@ -95,17 +95,23 @@ class CommentSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         text = validated_data['text']
+
         try:
-            customer = Customer.objects.filter(ID=validated_data['customer_id']).first()
+            barber_id = validated_data['barber']['barber_id']
+            barber = Barber.objects.filter(barber_id=barber_id).first()
         except Exception as error:
             return None
         try:
-            barber = Barber.objects.filter(user__username=validated_data['barber_id']).first()
+            customer_id = validated_data['customer']['customer_id']
+            customer = Customer.objects.filter(customer_id=customer_id).first()
         except Exception as error:
+            print(error)
             return None
+
         comment = Comment.objects.create(customer=customer, barber=barber, text=text)
         comment.save()
         return comment
+
 
 
 class ServiceSchemaSerializer(serializers.ModelSerializer):
@@ -120,13 +126,13 @@ class ServiceSchemaSerilzerIn(serializers.Serializer):
 
 
 class PresentedServiceSerializer(serializers.ModelSerializer):
-    barber_username = serializers.CharField(source='barber.user.username')
+    barber_id = serializers.CharField(source='barber.babrer_id')
     customer_id = serializers.CharField(source='customer.customer_id')
     serviceId_list = serializers.SerializerMethodField()
 
     class Meta:
         model = PresentedService
-        fields = ['barber_username', 'customer_id', 'serviceId_list', 'reserveTime', 'creationTime', 'status',
+        fields = ['barber_id', 'customer_id', 'serviceId_list', 'reserveTime', 'creationTime', 'status',
                   'payment',
                   'shift']
 
