@@ -158,7 +158,9 @@ class ServiceSerializer(serializers.ModelSerializer):
 class BarberSerializer_out(serializers.ModelSerializer):
     class Meta:
         model = Barber
-        fields = ['firstName', 'lastName', 'gender', 'address', 'point', 'location', 'image','sample_list','barberName']
+        fields = ['firstName', 'lastName', 'gender', 'address', 'point', 'location', 'image',
+                  # 'sample_list',
+                  'barberName']
 
 
 class CustomerSerializer_out(serializers.ModelSerializer):
