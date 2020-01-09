@@ -96,7 +96,7 @@ class CommentSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         text = validated_data['text']
         try:
-            customer = Customer.objects.filter(ID=validated_data['customer_id']).first()
+            customer = Customer.objects.filter(customer_id=validated_data['customer_id']).first()
         except Exception as error:
             return None
         try:
