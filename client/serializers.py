@@ -23,7 +23,7 @@ class CustomerSerializer(serializers.ModelSerializer):
             instance.snn = validated_data.get('snn', instance.snn)
             instance.gender = validated_data.get('gender', instance.gender)
             instance.image = validated_data.get('image', instance.image)
-            instance.email = validated_data.get('email',instance.email)
+            instance.email = validated_data.get('email', instance.email)
             instance.save()
             return instance
 
@@ -114,7 +114,6 @@ class CommentSerializer(serializers.ModelSerializer):
         return comment
 
 
-
 class ServiceSchemaSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceSchema
@@ -152,7 +151,7 @@ class PresentedServiceSerializer(serializers.ModelSerializer):
         presented_service = PresentedService(customer=customer, barber=barber,
                                              reserveTime=validated_data['reservedTime'], shift=validated_data['shift'],
                                              status=validated_data['status'], payment=validated_data['payment'])
-        presented_service.save()  # todo :depends on  implemention maybe you need to delete this
+        presented_service.save()  # todo :depends on  implementation maybe you need to delete this
         return presented_service
 
 

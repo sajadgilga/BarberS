@@ -23,47 +23,46 @@ from client.serializers import CustomerSerializer
 
 class CustomAuthToken(ObtainAuthToken):
     def get(self, request, phone=None):
-        login_user = LoginUser.objects.filter(phone=phone).first()
-        maincode = str(random.randrange(1000, 10000, 1))
+        try:
+            login_user = LoginUser.objects.filter(phone=phone).first()
+            maincode = str(random.randrange(1000, 10000, 1))
 
-        msg = ""
-        if login_user is None:
-            login_user = LoginUser.objects.create(phone=phone, code=maincode)
-            login_user.save()
-            msg = "message sent !!"
-        else:
-            msg = "This phone has used"
-            login_user.code = maincode
-            login_user.save()
-        return Response({maincode})
+            msg = ""
+            if login_user is None:
+                login_user = LoginUser.objects.create(phone=phone, code=maincode)
+                login_user.save()
+                msg = "message sent !!"
+            else:
+                msg = "This phone has used"
+                login_user.code = maincode
+                login_user.save()
+            return Response({maincode})
+        except:
+            return Response({"status": 120}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     # username and pass will send with a post method
     def post(self, request, *args, **kwargs):
-        phone = request.data['phone']
-        code = request.data['code']
-        temp_user = User.objects.filter(username=phone).first()
-        if temp_user is not None:
-            token, create = Token.objects.get_or_create(user=temp_user)
-            return Response({'token': token.key,
-                             'user_id': temp_user.pk})
-        # checkking  is the phone number  in the database??
-        # maincode = 1234;
-        login_user = LoginUser.objects.filter(phone=phone).first()
-        if login_user is None:
-            msg = "invalid phone number "  # it would not happen because if the post body have a right phone number
-            return redirect(request.path + phone)  # or we can redirect to a get with a phone number
-        maincode = login_user.code
-        if maincode == code:
-            user, temp = User.objects.get_or_create(username=phone, password='password')
-            id = Customer.objects.count() + 1
-            customer = Customer.objects.create(user=user, phone=phone, customer_id='customer_{}'.format(id))
-            token, create = Token.objects.get_or_create(user=user)
-            return Response({'token': token.key,
-                             'user_id': user.pk})
-        else:
-            login_user.code = str(random.randrange(1000, 10000, 1))
-            login_user.save()
-            return Response({"false code!"})
+        try:
+            phone = request.data['phone']
+            code = request.data['code']
+            login_user = LoginUser.objects.filter(phone=phone).first()
+            if login_user is None:
+                return Response({"status": 103},
+                                status=status.HTTP_400_BAD_REQUEST)  # or we can redirect to a get with a phone number
+            maincode = login_user.code
+            if maincode == code:
+                user = User.objects.filter(username=phone).first()
+                if not user:
+                    user = User.objects.create(username=phone, password='password')
+                    id = Customer.objects.count() + 1
+                    customer = Customer(user=user, phone=phone, customer_id='customer_{}'.format(id))
+                    customer.save()
+                token, create = Token.objects.get_or_create(user=user)
+                return Response({'token': token.key})
+            else:
+                return Response({"status": 101}, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response({"status": 120}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 ''' get method for logout . it takes a token in header and delete the token '''
@@ -72,8 +71,11 @@ class CustomAuthToken(ObtainAuthToken):
 @permission_classes([IsAuthenticated])
 @api_view(['GET'])
 def logout(request):
-    user = request.user
-    if user is AnonymousUser:
-        return Response("user not found ", status.HTTP_404_NOT_FOUND)
-    user.auth_token.delete()
-    return Response("succesfull loged out ", status=status.HTTP_200_OK)
+    try:
+        user = request.user
+        if user is AnonymousUser:
+            return Response({"status": 102}, status.HTTP_404_NOT_FOUND)
+        user.auth_token.delete()
+        return Response(status=status.HTTP_200_OK)
+    except:
+        return Response({"status": 120}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
