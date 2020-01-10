@@ -1,4 +1,4 @@
-# from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import Point
 from rest_framework import serializers
 
 from BarberS.settings import LOCATION_SEPARATOR
@@ -52,38 +52,38 @@ class BarberSerializer(serializers.ModelSerializer):
         fields = ['firstName', 'lastName', 'snn', 'phone', 'gender', 'address', 'point', 'location']
 
 
-# class BarberRecordSerializer(serializers.ModelSerializer):
-#     id = serializers.CharField(source='barber_id')
-#     name = serializers.SerializerMethodField()
-#     image_url = serializers.SerializerMethodField()
-#     distance = serializers.SerializerMethodField()
-#
-#     def get_name(self, obj):
-#         return '{} {}'.format(obj.firstName, obj.lastName)
-#
-#     def get_image_url(self, obj):
-#         try:
-#             return obj.image.url
-#         except:
-#             return ''
-#
-#     def get_distance(self, obj):
-#         try:
-#             if self.context['user_location'] == '' or obj.location == '':
-#                 return None
-#             [user_long, user_lat] = self.context['user_location'].split(LOCATION_SEPARATOR)
-#             [barber_long, barber_lat] = obj.location.split(LOCATION_SEPARATOR)
-#             p1 = Point(float(user_long), float(user_lat))
-#             p2 = Point(float(barber_long), float(barber_lat))
-#             d = p1.distance(p2)
-#             return d * 10 ** 5
-#         except:
-#             return None
-#
-#     class Meta:
-#         model = Barber
-#         fields = ['id', 'name', 'image_url', 'distance']
-#         read_only_fields = ['id', 'name', 'image_url', 'distance']
+class BarberRecordSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(source='barber_id')
+    name = serializers.SerializerMethodField()
+    image_url = serializers.SerializerMethodField()
+    distance = serializers.SerializerMethodField()
+
+    def get_name(self, obj):
+        return '{} {}'.format(obj.firstName, obj.lastName)
+
+    def get_image_url(self, obj):
+        try:
+            return obj.image.url
+        except:
+            return ''
+
+    def get_distance(self, obj):
+        try:
+            if self.context['user_location'] == '' or obj.location == '':
+                return None
+            [user_long, user_lat] = self.context['user_location'].split(LOCATION_SEPARATOR)
+            [barber_long, barber_lat] = obj.location.split(LOCATION_SEPARATOR)
+            p1 = Point(float(user_long), float(user_lat))
+            p2 = Point(float(barber_long), float(barber_lat))
+            d = p1.distance(p2)
+            return d * 10 ** 5
+        except:
+            return None
+
+    class Meta:
+        model = Barber
+        fields = ['id', 'name', 'image_url', 'distance']
+        read_only_fields = ['id', 'name', 'image_url', 'distance']
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -147,31 +147,37 @@ class PresentedServiceSerializer(serializers.ModelSerializer):
         except Exception as error:
             return error
 
-    def create(self, validated_data, barber, customer):
-        presented_service = PresentedService(customer=customer, barber=barber,
-                                             reserveTime=validated_data['reservedTime'], shift=validated_data['shift'],
-                                             status=validated_data['status'])
-        presented_service.save()  # todo :depends on  implemention maybe you need to delete this
-        return presented_service
 
 
 class PresentedServiceSerializer_in(serializers.ModelSerializer):
     barber_id = serializers.CharField(source='barber.barber_id')
     customer_id = serializers.CharField(source='customer.customer_id')
-    serviceId_list = serializers.ListField(child=serializers.IntegerField())
+    service_id_list = serializers.ListField(child=serializers.CharField())
 
     class Meta:
         model = PresentedService
-        fields = ['barber_id', 'customer_id', 'serviceId_list', 'reserveTime', 'status',
+        fields = ['barber_id', 'customer_id', 'service_id_list', 'reserveTime',
                   'payment',
                   'shift']
 
-    def create(self, validated_data, barber, customer):
-        presented_service = PresentedService(customer=customer, barber=barber,
-                                             reserveTime=validated_data['reserveTime'], shift=validated_data['shift'],
-                                             status=validated_data['status'])
-        presented_service.save()  # todo :depends on  implemention maybe you need to delete this
+    def create(self, validated_data, barber, customer,status):
+        presented_service = PresentedService.objects.create(customer=customer, barber=barber,
+                                                            reserveTime=validated_data['reserveTime'],
+                                                            shift=validated_data['shift'],
+                                                            status=status)
+        # presented_service.save()  # todo :depends on  implemention maybe you need to delete this
         return presented_service
+
+    # def get_service_id_list(self, obj):
+    #     l = obj.service.all()
+    #     try:
+    #         list = []
+    #         for i in l:
+    #             temp = i.service_id
+    #             list.add(temp)
+    #         return list
+    #     except:
+    #         return None
 
 
 class ServiceSerializer(serializers.ModelSerializer):

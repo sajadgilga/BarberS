@@ -34,33 +34,42 @@ class PaymentRequest(APIView):
             return Response({"status": 502} + error, status=status.HTTP_400_BAD_REQUEST)  # invalid data
         if serializer.is_valid():
             barber_id = serializer.validated_data['barber']['barber_id']
-            serviceID_list = serializer.validated_data['serviceId_list']
+
+            service_id_list = serializer.validated_data['service_id_list']  # todo: serviceId must change to service_id
+        else:
+            return Response({"status": 503}, status=status.HTTP_400_BAD_REQUEST)
         barber = Barber.objects.filter(barber_id=barber_id).first()
         if barber is None:
             return Response({"status": 500},
                             status=status.HTTP_400_BAD_REQUEST)  # there is no barber with this username
-        temp_presentService = serializer.create(validated_data=serializer.validated_data,barber=barber,customer=customer)
-        for id in serviceID_list:
-            service = Service.objects.filter(service__serviceId=id).first()
+        temp_presentService_status = "not paid"
+        temp_presentService = serializer.create(validated_data=serializer.validated_data, barber=barber,
+                                                status=temp_presentService_status,
+                                                customer=customer)
+        for service_id in service_id_list:
+            service = Service.objects.filter(service_number=service_id).first()
             if service is None:
                 return Response({"status": 500},
                                 status=status.HTTP_400_BAD_REQUEST)  # this service not exists for barber
             # payment =payment+ service.cost
             temp_presentService.service.add(service)
         if self.check_reserve(temp_presentService, barber):
-            result = client.service.PaymentRequest(MERCHANT=settings.MERCHANT, amount=settings.amount,
-                                                   description=settings.description,
-                                                   email=settings.email,
-                                                   mobile=settings.email, CallbackURL=settings.CallbackURL)
-            temp_presentService.authority = result.Authority
-            if result.Status == 100:
-                return redirect('https://www.zarinpal.com/pg/StartPay/' + str(result.Authority))
-            else:
-                return HttpResponse('Error code: ' + str(result.Status))
-            PresentedService.objects.filter(temp_presentService).delete()
+            return Response({"status": 200}, status=status.HTTP_200_OK)
+            # todo: payment request does not send to the port !
+
+            # result = client.service.PaymentRequest(MERCHANT=settings.MERCHANT, amount=settings.amount,
+            #                                        description=settings.description,
+            #                                        email=settings.email,
+            #                                        mobile=settings.email, CallbackURL=settings.CallbackURL)
+            # temp_presentService.authority = result.Authority
+            # if result.Status == 100:
+            #     return redirect('https://www.zarinpal.com/pg/StartPay/' + str(result.Authority))
+            # else:
+            #     return HttpResponse('Error code: ' + str(result.Status))
+            # PresentedService.objects.filter(temp_presentService).delete()
         else:
-            return Response({"status": 502}, status=status.HTTP_400_BAD_REQUEST)
             PresentedService.objects.filter(temp_presentService).delete()
+            return Response({"status": 502}, status=status.HTTP_400_BAD_REQUEST)
 
     def check_reserve(self, presnted_service, barber):
         week_day = presnted_service.reserveTime.date().weekday()
@@ -113,7 +122,6 @@ def verify(self, request):
     else:
         PresentedService.objects.filter(presented_service).delete()
         return HttpResponse('Transaction failed or canceled by user')
-
 
 # 500 not exist
 # 501 not allowed (profiled must complete)
