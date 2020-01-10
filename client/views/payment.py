@@ -27,17 +27,19 @@ class PaymentRequest(APIView):
         if customer is None:
             return Response({"status": 502}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            serializer = PresentedServiceSerializer(request.data, context={'customer_ID', customer.ID})
+            data = request.data
+            data['customer_id'] = customer.customer_id
+            serializer = PresentedServiceSerializer_in(data=data)
         except Exception as error:
             return Response({"status": 502} + error, status=status.HTTP_400_BAD_REQUEST)  # invalid data
         if serializer.is_valid():
-            barber_username = serializer.validated_data['barber_username']
-            serviceID_list = serializer.validated_data[' serviceID_list ']
-        barber = Barber.objects.filter(user__username=barber_username).first()
+            barber_id = serializer.validated_data['barber']['barber_id']
+            serviceID_list = serializer.validated_data['serviceId_list']
+        barber = Barber.objects.filter(barber_id=barber_id).first()
         if barber is None:
             return Response({"status": 500},
                             status=status.HTTP_400_BAD_REQUEST)  # there is no barber with this username
-        temp_presentService = serializer.create(validated_data=serializer.validated_data)
+        temp_presentService = serializer.create(validated_data=serializer.validated_data,barber=barber,customer=customer)
         for id in serviceID_list:
             service = Service.objects.filter(service__serviceId=id).first()
             if service is None:
@@ -57,7 +59,7 @@ class PaymentRequest(APIView):
                 return HttpResponse('Error code: ' + str(result.Status))
             PresentedService.objects.filter(temp_presentService).delete()
         else:
-            return Response({"status": 503}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"status": 502}, status=status.HTTP_400_BAD_REQUEST)
             PresentedService.objects.filter(temp_presentService).delete()
 
     def check_reserve(self, presnted_service, barber):
@@ -69,7 +71,7 @@ class PaymentRequest(APIView):
                                               shift=presnted_service.shift).count() - 1  # minus one because this presented service is saved !
         if self.shift_limit_verification(cnt, settings.MAX_RESERVE_LIMIT):
             return False
-        if presnted_service.reserveTime < datetime.datetime.now():  # todo : time checking with day
+        if presnted_service.reserveTime.date() < datetime.date.today():  # todo : time checking with day
             return False
         return True
 
@@ -112,5 +114,8 @@ def verify(self, request):
         PresentedService.objects.filter(presented_service).delete()
         return HttpResponse('Transaction failed or canceled by user')
 
-# 500 not exists
-# 502 invalid input
+
+# 500 not exist
+# 501 not allowed (profiled must complete)
+# 502 bad input like post method with wrong body !
+# 503 not validated data
