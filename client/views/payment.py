@@ -1,6 +1,6 @@
 import datetime
 
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -16,10 +16,9 @@ from zeep import Client as client
 
 class PaymentRequest(APIView):
     permission_classes = [IsAuthenticated]
-    payment = 0
 
     def post(self, request):
-
+        payment = 0
         user = request.user
         if user is None:
             return Response({"status": 500}, status=status.HTTP_400_BAD_REQUEST)
@@ -51,10 +50,10 @@ class PaymentRequest(APIView):
             if service is None:
                 return Response({"status": 500},
                                 status=status.HTTP_400_BAD_REQUEST)  # this service not exists for barber
-            # payment =payment+ service.cost
+            payment = payment + service.cost
             temp_presentService.service.add(service)
         if self.check_reserve(temp_presentService, barber):
-            return Response({"status": 200}, status=status.HTTP_200_OK)
+            return Response({"status": 200, "payment": payment}, status=status.HTTP_200_OK)
             # todo: payment request does not send to the port !
 
             # result = client.service.PaymentRequest(MERCHANT=settings.MERCHANT, amount=settings.amount,
@@ -68,7 +67,7 @@ class PaymentRequest(APIView):
             #     return HttpResponse('Error code: ' + str(result.Status))
             # PresentedService.objects.filter(temp_presentService).delete()
         else:
-            PresentedService.objects.filter(temp_presentService).delete()
+            PresentedService.objects.filter(id=temp_presentService.id).delete()
             return Response({"status": 502}, status=status.HTTP_400_BAD_REQUEST)
 
     def check_reserve(self, presnted_service, barber):
@@ -76,7 +75,12 @@ class PaymentRequest(APIView):
         work_day = WorkDay.objects.filter(barber=barber).first()
         if work_day.week_days[week_day] is "0":
             return False
-        cnt = PresentedService.objects.filter(reserveTime=presnted_service.reserveTime, barber=barber,
+        date = presnted_service.reserveTime.date()
+        if PresentedService.objects.filter(shift=presnted_service.shift).count()-1 is 0:
+            return False
+        cnt = PresentedService.objects.filter(reserveTime__day=date.day, reserveTime__month=date.month,
+                                              reserveTime__year=date.year,
+                                              barber=barber,
                                               shift=presnted_service.shift).count() - 1  # minus one because this presented service is saved !
         if self.shift_limit_verification(cnt, settings.MAX_RESERVE_LIMIT):
             return False

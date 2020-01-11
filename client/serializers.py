@@ -1,4 +1,4 @@
-from django.contrib.gis.geos import Point
+# from django.contrib.gis.geos import Point
 from rest_framework import serializers
 
 from BarberS.settings import LOCATION_SEPARATOR
@@ -10,7 +10,7 @@ from django.utils.translation import gettext_lazy as _
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
-        fields = ['firstName', 'lastName', 'snn', 'gender', 'credit']
+        fields = ['firstName', 'lastName', 'snn', 'gender', 'credit','image', 'email']
 
         # phone deleted !!!!!!!!!!!
 
@@ -18,12 +18,12 @@ class CustomerSerializer(serializers.ModelSerializer):
             return Customer(**validated_data)
 
         def update(self, instance, validated_data):
-            instance.firstname = validated_data.get('firstname', instance.firstname)
-            instance.lastname = validated_data.get('lastname', instance.lastname)
-            instance.snn = validated_data.get('snn', instance.snn)
-            instance.gender = validated_data.get('gender', instance.gender)
-            instance.image = validated_data.get('image', instance.image)
-            instance.email = validated_data.get('email', instance.email)
+            instance.firstName = validated_data['firstName']
+            instance.lastName = validated_data['lastName']
+            instance.snn = validated_data['snn']
+            instance.gender = validated_data['gender']
+            instance.image = validated_data['image']
+            instance.email = validated_data['email']
             instance.save()
             return instance
 
@@ -52,38 +52,38 @@ class BarberSerializer(serializers.ModelSerializer):
         fields = ['firstName', 'lastName', 'snn', 'phone', 'gender', 'address', 'point', 'location']
 
 
-class BarberRecordSerializer(serializers.ModelSerializer):
-    id = serializers.CharField(source='barber_id')
-    name = serializers.SerializerMethodField()
-    image_url = serializers.SerializerMethodField()
-    distance = serializers.SerializerMethodField()
-
-    def get_name(self, obj):
-        return '{} {}'.format(obj.firstName, obj.lastName)
-
-    def get_image_url(self, obj):
-        try:
-            return obj.image.url
-        except:
-            return ''
-
-    def get_distance(self, obj):
-        try:
-            if self.context['user_location'] == '' or obj.location == '':
-                return None
-            [user_long, user_lat] = self.context['user_location'].split(LOCATION_SEPARATOR)
-            [barber_long, barber_lat] = obj.location.split(LOCATION_SEPARATOR)
-            p1 = Point(float(user_long), float(user_lat))
-            p2 = Point(float(barber_long), float(barber_lat))
-            d = p1.distance(p2)
-            return d * 10 ** 5
-        except:
-            return None
-
-    class Meta:
-        model = Barber
-        fields = ['id', 'name', 'image_url', 'distance']
-        read_only_fields = ['id', 'name', 'image_url', 'distance']
+# class BarberRecordSerializer(serializers.ModelSerializer):
+#     id = serializers.CharField(source='barber_id')
+#     name = serializers.SerializerMethodField()
+#     image_url = serializers.SerializerMethodField()
+#     distance = serializers.SerializerMethodField()
+#
+#     def get_name(self, obj):
+#         return '{} {}'.format(obj.firstName, obj.lastName)
+#
+#     def get_image_url(self, obj):
+#         try:
+#             return obj.image.url
+#         except:
+#             return ''
+#
+#     def get_distance(self, obj):
+#         try:
+#             if self.context['user_location'] == '' or obj.location == '':
+#                 return None
+#             [user_long, user_lat] = self.context['user_location'].split(LOCATION_SEPARATOR)
+#             [barber_long, barber_lat] = obj.location.split(LOCATION_SEPARATOR)
+#             p1 = Point(float(user_long), float(user_lat))
+#             p2 = Point(float(barber_long), float(barber_lat))
+#             d = p1.distance(p2)
+#             return d * 10 ** 5
+#         except:
+#             return None
+#
+#     class Meta:
+#         model = Barber
+#         fields = ['id', 'name', 'image_url', 'distance']
+#         read_only_fields = ['id', 'name', 'image_url', 'distance']
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -107,6 +107,8 @@ class CommentSerializer(serializers.ModelSerializer):
             customer = Customer.objects.filter(customer_id=customer_id).first()
         except Exception as error:
             print(error)
+            return None
+        if barber is None:
             return None
 
         comment = Comment.objects.create(customer=customer, barber=barber, text=text)
@@ -148,7 +150,6 @@ class PresentedServiceSerializer(serializers.ModelSerializer):
             return error
 
 
-
 class PresentedServiceSerializer_in(serializers.ModelSerializer):
     barber_id = serializers.CharField(source='barber.barber_id')
     customer_id = serializers.CharField(source='customer.customer_id')
@@ -160,7 +161,7 @@ class PresentedServiceSerializer_in(serializers.ModelSerializer):
                   'payment',
                   'shift']
 
-    def create(self, validated_data, barber, customer,status):
+    def create(self, validated_data, barber, customer, status):
         presented_service = PresentedService.objects.create(customer=customer, barber=barber,
                                                             reserveTime=validated_data['reserveTime'],
                                                             shift=validated_data['shift'],

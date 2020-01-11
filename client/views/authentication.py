@@ -76,6 +76,6 @@ def logout(request):
         if user is AnonymousUser:
             return Response({"status": 102}, status.HTTP_404_NOT_FOUND)
         user.auth_token.delete()
-        return Response(status=status.HTTP_200_OK)
+        return Response({"status": 200},status=status.HTTP_200_OK)
     except:
         return Response({"status": 120}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

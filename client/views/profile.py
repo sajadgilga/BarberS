@@ -72,6 +72,7 @@ def customer_change_profile(request):
     serializer = CustomerSerializer(data=request.data)
     if serializer.is_valid():
         customer = serializer.update(customer, serializer.validated_data)
+        # customer.image = request.FILES['image']
         customer.isCompleted = True
         customer.save()
         return Response({"status": 200}, status=status.HTTP_200_OK)
@@ -115,6 +116,8 @@ def get_reserved_service(request):
     if not offset:
         offset = 0
     offset = limit * int(offset)
+    if offset < 0:
+        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
     user = request.user
     if user is None:
         return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
@@ -162,6 +165,8 @@ def barber_comment(request, barber_id):
     if not offset:
         offset = 0
     offset = limit * int(offset)
+    if offset < 0:
+        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
     user = request.user
     if user is None:
         return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
@@ -203,13 +208,18 @@ def send_comment(request):
         return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
     customer = Customer.objects.filter(user=request.user).first()
     if customer is None:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response({"status": 400}, status=status.HTTP_404_NOT_FOUND)
     if customer.isCompleted is False:
         return Response({"status": 401}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
     data = request.data
     data['customer_id'] = customer.customer_id
     serializer = CommentSerializer(data=data)
     if serializer.is_valid():
+        # barber_id = serializer.validated_data['barber']['barber_id']
+        # barber = Barber.objects.filter(barber_id=barber_id)
+        # if barber is None:
+        #     return Response({"status": 400}, status=status.HTTP_404_NOT_FOUND)
         comment = serializer.create(serializer.validated_data)
         if comment is None:
             return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
@@ -220,7 +230,6 @@ def send_comment(request):
 
 '''customer like api for showing liked barbers by customer 
 it returns barbers information'''
-
 
 
 @permission_classes([IsAuthenticated])
@@ -300,6 +309,8 @@ def score(request):
     except:
         return Response({"status": 400}, status=status.HTTP_404_NOT_FOUND)
     if point > point_limit:
+        return Response({"status": 403}, status=status.HTTP_400_BAD_REQUEST)
+    if point < 0:
         return Response({"status": 403}, status=status.HTTP_400_BAD_REQUEST)
     barber = Barber.objects.filter(barber_id=barber_id).first()
     if barber is None:

@@ -138,7 +138,7 @@ STATIC_URL = '/static/'
 
 LOCATION_SEPARATOR = ' -- '
 
-MAX_RESERVE_LIMIT = 20
+MAX_RESERVE_LIMIT = 1
 
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'

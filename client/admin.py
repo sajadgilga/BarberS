@@ -68,5 +68,11 @@ class ServiceSchemaAdmin(admin.ModelAdmin):
 @admin.register(WorkDay)
 class WorkDayAdmin(admin.ModelAdmin):
     list_display = ('barber', 'week_days')
-    list_filter = ('barber', )
-    search_fields = ('barber', )
+    list_filter = ('barber',)
+    search_fields = ('barber',)
+
+
+@admin.register(Shift)
+class ShiftAdmin(admin.ModelAdmin):
+    list_display = ('start_time', 'end_time', 'shifts', 'workday', 'name')
+    list_filter = ('name', 'start_time')
