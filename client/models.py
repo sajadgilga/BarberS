@@ -73,7 +73,7 @@ class Comment(models.Model):
 
 class ServiceSchema(models.Model):
     name = models.CharField('service name', max_length=30)
-    serviceId = models.IntegerField(primary_key=True)
+    service_schema_id = models.CharField(unique=True, max_length=32, default='service_schema_0')
     description = models.TextField()
     icon = models.ImageField(upload_to='service-icons')  # is icon image?
 
@@ -84,11 +84,12 @@ class PresentedService(models.Model):
     service = models.ManyToManyField(to='Service', related_name='presented_service')
     reserveTime = models.DateTimeField(null=True, blank=True)
     creationTime = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    project_id = models.CharField(unique=True, default='', max_length=32)
 
     status = models.CharField(max_length=20)
     payment = models.FloatField(default=-1)
     shift = models.CharField(max_length=20)  # what is the type of shift
-    authority = models.CharField(max_length=60,default=-1)
+    authority = models.CharField(max_length=60, default=-1)
 
 
 class SampleWork(models.Model):
@@ -114,9 +115,10 @@ class Shift(models.Model):
 
 class Service(models.Model):
     barber = models.ForeignKey('Barber', on_delete=models.CASCADE, related_name='services')
-    service = models.ForeignKey(to='ServiceSchema', on_delete=models.CASCADE)
+    schema = models.ForeignKey(to='ServiceSchema', on_delete=models.CASCADE)
     cost = models.FloatField('cost of service')
+    service_id = models.CharField(unique=True, max_length=32, default='service_0')
     service_number = models.CharField(max_length=50)
 
     class Meta:
-        unique_together = (("barber", "service"),)
+        unique_together = (("barber", "schema"),)

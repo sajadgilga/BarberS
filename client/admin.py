@@ -53,16 +53,22 @@ class SampleWorkAdmin(admin.ModelAdmin):
 
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
-    list_display = ('barber', 'service', 'cost',)
-    list_filter = ('barber', 'service', 'cost',)
-    search_fields = ('barber', 'service', 'cost',)
+    list_display = ('barber', 'schema', 'cost',)
+    list_filter = ('barber', 'schema', 'cost',)
+    search_fields = ('barber', 'schema', 'cost',)
 
 
 @admin.register(ServiceSchema)
 class ServiceSchemaAdmin(admin.ModelAdmin):
-    list_display = ('name', 'serviceId', 'description', 'icon')
-    list_filter = ('name', 'serviceId', 'description',)
-    search_fields = ('name', 'serviceId', 'description',)
+    list_display = ('name', 'service_schema_id', 'description', 'icon')
+    list_filter = ('name', 'service_schema_id', 'description',)
+    search_fields = ('name', 'service_schema_id', 'description',)
+    exclude = ('service_schema_id',)
+
+    def save_model(self, request, obj, form, change):
+        id = ServiceSchema.objects.count()
+        obj.service_schema_id = 'service_schema_{}'.format(id + 1)
+        obj.save()
 
 
 @admin.register(WorkDay)
