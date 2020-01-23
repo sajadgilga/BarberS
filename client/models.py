@@ -34,7 +34,7 @@ class Location(models.Model):
     ID = models.CharField(max_length=64, unique=True)
 
 
-class LoginUser(models.Model):
+class LoginUser(models.Model):#or login barber
     code = models.CharField('verification code ', max_length=6)
     phone = models.CharField('logged in phone', max_length=12, unique=True)
 
@@ -60,7 +60,7 @@ class Barber(models.Model):
         choices=genderStatus,
         default='m'
     )
-    barber_id = models.CharField(max_length=32, unique=True)
+    barber_id = models.CharField(max_length=32, unique=True,default ='barber_id_0')
 
 
 class Comment(models.Model):
@@ -84,7 +84,7 @@ class PresentedService(models.Model):
     service = models.ManyToManyField(to='Service', related_name='presented_service')
     reserveTime = models.DateTimeField(null=True, blank=True)
     creationTime = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-    project_id = models.CharField(unique=True, default='', max_length=32)
+    project_id = models.CharField(unique=True, default='project_0', max_length=32)
 
     status = models.CharField(max_length=20)
     payment = models.FloatField(default=-1)
