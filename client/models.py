@@ -61,6 +61,7 @@ class Barber(models.Model):
         default='m'
     )
     barber_id = models.CharField(max_length=32, unique=True,default ='barber_id_0')
+    is_verified = models.BooleanField(default=False)
 
 
 class Comment(models.Model):

@@ -49,7 +49,20 @@ class LocationSerializer(serializers.ModelSerializer):
 class BarberSerializer(serializers.ModelSerializer):
     class Meta:
         model = Barber
-        fields = ['firstName', 'lastName', 'snn', 'phone', 'gender', 'address', 'point', 'location']
+        fields = ['firstName', 'lastName', 'snn', 'gender', 'address', 'location','image','barberName']
+        def update(self,instance,validated_data):
+            try:
+                instance.firstName = validated_data['firstName']
+                instance.lastName = validated_data['lastName']
+                instance.snn = validated_data['snn']
+                instance.gender = validated_data['gender']
+                instance.address = validated_data['address']
+                instance.locations = validated_data['location']
+                instance.barberName = validated_data['barberName']
+                instance.image = validated_data['image']
+                instance.save()
+            except:
+                return None
 
 
 class BarberRecordSerializer(serializers.ModelSerializer):
@@ -230,3 +243,28 @@ class SampleWorkSerializer(serializers.ModelSerializer):
     class Meta:
         model = SampleWork
         fields = ['image']
+
+class SampleWorkSerializer_in(serializers.ModelSerializer):
+    barber_id = serializers.CharField(source='barber.barber_id')
+    class Meta:
+        model = SampleWork
+        fields = ['image','description','barber_id']
+    def create(self,validated_data):
+        try:
+            image = validated_data['image']
+            description = validated_data['description']
+            barber = Barber.objects.filter(barber_id=validated_data['barber']['barber_id']).first()
+            sample = SampleWork(barber = barber,description = description,image = image)
+            sample.save()
+            return sample
+        except:
+            return None
+
+
+
+
+class bar_BarberSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Barber
+        fields = '__all__'
+
