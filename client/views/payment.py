@@ -45,8 +45,8 @@ class PaymentRequest(APIView):
         temp_presentService = serializer.create(validated_data=serializer.validated_data, barber=barber,
                                                 status=temp_presentService_status,
                                                 customer=customer)
-        for service_id in service_id_list:
-            service = Service.objects.filter(service_number=service_id).first()
+        for service_number in service_id_list:
+            service = Service.objects.filter(service_number=service_number).first()
             if service is None:
                 return Response({"status": 500},
                                 status=status.HTTP_400_BAD_REQUEST)  # this service not exists for barber

@@ -43,6 +43,11 @@ class PresentedServiceAdmin(admin.ModelAdmin):
     list_filter = ('customer', 'barber', 'reserveTime', 'creationTime', 'status', 'payment', 'shift')
     search_fields = ('customer', 'barber', 'reserveTime', 'creationTime', 'status', 'payment', 'shift')
 
+    def save_model(self, request, obj, form, change):
+        id = PresentedService.objects.count()
+        obj.project_id = 'project_{}'.format(id + 1)
+        obj.save()
+
 
 @admin.register(SampleWork)
 class SampleWorkAdmin(admin.ModelAdmin):
@@ -53,9 +58,9 @@ class SampleWorkAdmin(admin.ModelAdmin):
 
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
-    list_display = ('barber', 'schema', 'cost',)
-    list_filter = ('barber', 'schema', 'cost',)
-    search_fields = ('barber', 'schema', 'cost',)
+    list_display = ( 'barber', 'cost',)
+    list_filter = ('barber', 'cost',)
+    search_fields = ('barber', 'cost',)
 
 
 @admin.register(ServiceSchema)

@@ -6,7 +6,10 @@ from rest_framework.views import APIView
 from django.contrib.auth.models import User, AnonymousUser
 from client.models import *
 from client.serializers import *
-
+import json
+from rest_framework.renderers import JSONRenderer
+import io
+from rest_framework.parsers import JSONParser
 
 @api_view(['GET'])
 def get_comment(request):
@@ -59,11 +62,16 @@ def get_profile(request):
 
 class Get_home(APIView):
     LIMIT = 5
-    status = ['done', 'new', 'undone']
+    status = ['new','done','not paid']
 
     def get(self, request):
-        offset, queryset, serializer = [i for i in range(status)]
+        status = self.status
+        length = len(status)
+        offset = [0 for i in range(length)]
+        queryset = [[] for i in range(length)]
+        serializer = [[] for i in range(length)]
         final = []
+        # final = json.dumps(final)
         try:
             user = request.user
             if user is AnonymousUser or None:
@@ -74,24 +82,35 @@ class Get_home(APIView):
             if barber.is_verified is False:
                 return Response({})
 
-            for i in range(len(status)):
-                queryset[i] = PresentedService.objects.filter(status=status[i])
+            for i in range(length):
+                # temp2 = PresentedService.objects.filter()
+                temp = PresentedService.objects.filter(status=status[i])
+                queryset[i] = temp
 
-                for i in range(len(status)):
-                    offset[i] = request.GET.get('offset{}'.format(i))
+            for i in range(length):
+                offset[i] = request.GET.get('offset{}'.format(i))
 
-            for i in range(len(status)):
-                queryset[i] = self.manage_set(self, offset[i], queryset[i])
+            for i in range(length):
+                queryset[i] = self.manage_set(offset[i], queryset[i])
 
-            for i in range(len(status)):
+            for i in range(length):
                 serializer[i] = PresentedServiceSerializer(queryset[i], many=True)
-
+            cnt = 0
             for i in serializer:
-                final = final + status[i] + ':' + i.data + ' '
-        except:
+                temp = {}
+                temp[status[cnt]] = i.data
+                json= JSONRenderer().render(temp)
+                stream = io.BytesIO(json)
+                data = JSONParser().parse(stream)
+                final.append(data)
+                cnt += 1
+        except Exception as error:
             return Response({})  ##################################################fill this line!
 
-        return Response(final, status=status.HTTP_200_OK)
+        return Response(final)
+
+    def post(self, request):
+        pass
 
     def manage_set(self, offset, queryset):
         if not offset:
@@ -108,6 +127,7 @@ class Get_home(APIView):
 
         return set
 
+
 @api_view(['POST'])
 def add_samples(request):
     user = request.user
@@ -119,8 +139,8 @@ def add_samples(request):
     if barber.is_verified is False:
         return Response({})
     data = request.data
-    data['barber_id']:barber.barber_id
-    serializer = SampleWorkSerializer_in(data = data)
+    data['barber_id']: barber.barber_id
+    serializer = SampleWorkSerializer_in(data=data)
     if serializer.is_valid() is False:
         return Response(serializer.errors)
     sample = serializer.create(serializer.validated_data)
@@ -145,3 +165,27 @@ def change_profile(request):
     if temp is None:
         return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
     return Response({'status': 200}, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+def shift_handler(request):
+    user = request.user
+    if user is AnonymousUser or None:
+        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
+    barber = Barber.objects.filter(user=user).first()
+    if barber is None:
+        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
+    if barber.is_verified is False:
+        return Response({})
+    data = request.data
+    try:
+        data['barber_id'] = barber.barber_id
+    except:
+        return Response({})
+    serializer = ShiftSerializer(data=data)
+    if serializer.is_valid() is False:
+        return Response({})
+    shift = serializer.create(serializer.validated_data)
+    if shift is None:
+        return Response({})
+    return Response({"status":200},status=status.HTTP_200_OK)

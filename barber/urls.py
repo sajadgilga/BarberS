@@ -11,4 +11,5 @@ urlpatterns = [
     path('change_profile/', change_profile),
     path('get_home/', Get_home.as_view()),
     path('add_sample/', add_samples),
+    path('shift_handler/', shift_handler),
 ]

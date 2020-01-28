@@ -4,7 +4,8 @@ from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
-
+import random
+import datetime
 
 class Customer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -12,7 +13,7 @@ class Customer(models.Model):
     phone = models.CharField('contact phone', max_length=20)
     snn = models.CharField('national code', max_length=12)
     firstName = models.CharField('first name', max_length=20)
-    email = models.EmailField('email',max_length=50)
+    email = models.EmailField('email', max_length=50)
     lastName = models.CharField('last name', max_length=40)
     genderStatus = (
         ('f', 'female'),
@@ -34,7 +35,7 @@ class Location(models.Model):
     ID = models.CharField(max_length=64, unique=True)
 
 
-class LoginUser(models.Model):#or login barber
+class LoginUser(models.Model):  # or login barber
     code = models.CharField('verification code ', max_length=6)
     phone = models.CharField('logged in phone', max_length=12, unique=True)
 
@@ -60,7 +61,7 @@ class Barber(models.Model):
         choices=genderStatus,
         default='m'
     )
-    barber_id = models.CharField(max_length=32, unique=True,default ='barber_id_0')
+    barber_id = models.CharField(max_length=32, unique=True, default='barber_id_0')
     is_verified = models.BooleanField(default=False)
 
 
@@ -79,6 +80,10 @@ class ServiceSchema(models.Model):
     icon = models.ImageField(upload_to='service-icons')  # is icon image?
 
 
+def get_project_id():
+    return 'project_{}'.format(random.randrange(1000,10000,1))
+    # return datetime.datetime.now()
+
 class PresentedService(models.Model):
     barber = models.ForeignKey('Barber', on_delete=models.CASCADE)
     customer = models.ForeignKey('Customer', on_delete=models.CASCADE)
@@ -91,6 +96,7 @@ class PresentedService(models.Model):
     payment = models.FloatField(default=-1)
     shift = models.CharField(max_length=20)  # what is the type of shift
     authority = models.CharField(max_length=60, default=-1)
+
 
 
 class SampleWork(models.Model):
@@ -116,10 +122,9 @@ class Shift(models.Model):
 
 class Service(models.Model):
     barber = models.ForeignKey('Barber', on_delete=models.CASCADE, related_name='services')
-    schema = models.ForeignKey(to='ServiceSchema', on_delete=models.CASCADE)
+    schema = models.ForeignKey('ServiceSchema', on_delete=models.CASCADE,related_name='test')
     cost = models.FloatField('cost of service')
     service_id = models.CharField(unique=True, max_length=32, default='service_0')
     service_number = models.CharField(max_length=50)
 
-    class Meta:
-        unique_together = (("barber", "schema"),)
+

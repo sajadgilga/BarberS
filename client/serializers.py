@@ -2,7 +2,7 @@ from django.contrib.gis.geos import Point
 from rest_framework import serializers
 
 from BarberS.settings import LOCATION_SEPARATOR
-from client.models import Customer, Barber, Comment, ServiceSchema, PresentedService, Service, Location, SampleWork
+from client.models import *
 from django.contrib.auth import authenticate
 from django.utils.translation import gettext_lazy as _
 
@@ -10,7 +10,7 @@ from django.utils.translation import gettext_lazy as _
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
-        fields = ['firstName', 'lastName', 'snn', 'gender', 'credit','image', 'email']
+        fields = ['firstName', 'lastName', 'snn', 'gender', 'credit', 'image', 'email']
 
         # phone deleted !!!!!!!!!!!
 
@@ -49,8 +49,9 @@ class LocationSerializer(serializers.ModelSerializer):
 class BarberSerializer(serializers.ModelSerializer):
     class Meta:
         model = Barber
-        fields = ['firstName', 'lastName', 'snn', 'gender', 'address', 'location','image','barberName']
-        def update(self,instance,validated_data):
+        fields = ['firstName', 'lastName', 'snn', 'gender', 'address', 'location', 'image', 'barberName']
+
+        def update(self, instance, validated_data):
             try:
                 instance.firstName = validated_data['firstName']
                 instance.lastName = validated_data['lastName']
@@ -63,6 +64,7 @@ class BarberSerializer(serializers.ModelSerializer):
                 instance.save()
             except:
                 return None
+
 
 
 class BarberRecordSerializer(serializers.ModelSerializer):
@@ -156,7 +158,7 @@ class PresentedServiceSerializer(serializers.ModelSerializer):
         try:
             l = []
             for i in all:
-                id = i.service.serviceId
+                id = i.service_number
                 l.append(id)
             return l
         except Exception as error:
@@ -175,10 +177,11 @@ class PresentedServiceSerializer_in(serializers.ModelSerializer):
                   'shift']
 
     def create(self, validated_data, barber, customer, status):
+        project_id = 'project_{}'.format(PresentedService.objects.count() + 1)
         presented_service = PresentedService.objects.create(customer=customer, barber=barber,
                                                             reserveTime=validated_data['reserveTime'],
                                                             shift=validated_data['shift'],
-                                                            status=status)
+                                                            status=status, project_id=project_id)
         # presented_service.save()  # todo :depends on  implemention maybe you need to delete this
         return presented_service
 
@@ -244,23 +247,24 @@ class SampleWorkSerializer(serializers.ModelSerializer):
         model = SampleWork
         fields = ['image']
 
+
 class SampleWorkSerializer_in(serializers.ModelSerializer):
     barber_id = serializers.CharField(source='barber.barber_id')
+
     class Meta:
         model = SampleWork
-        fields = ['image','description','barber_id']
-    def create(self,validated_data):
+        fields = ['image', 'description', 'barber_id']
+
+    def create(self, validated_data):
         try:
             image = validated_data['image']
             description = validated_data['description']
             barber = Barber.objects.filter(barber_id=validated_data['barber']['barber_id']).first()
-            sample = SampleWork(barber = barber,description = description,image = image)
+            sample = SampleWork(barber=barber, description=description, image=image)
             sample.save()
             return sample
         except:
             return None
-
-
 
 
 class bar_BarberSerializer(serializers.ModelSerializer):
@@ -268,3 +272,25 @@ class bar_BarberSerializer(serializers.ModelSerializer):
         model = Barber
         fields = '__all__'
 
+
+class ShiftSerializer(serializers.ModelSerializer):
+    barber_id = serializers.CharField(source='barber.barber_id')
+    week_days = serializers.CharField(max_length=7, default='0000000')
+
+    class Meta:
+        model = Shift
+        fields = ['week_days', 'name', 'start_time', 'end_time', 'name', 'barber_id']
+
+    def create(self, validated_data):
+        try:
+            barber = Barber.objects.filter(barber_id=validated_data['barber']['barber_id']).first()
+            workday = WorkDay.objects.create(week_days=validated_data['week_days'], barber=barber)
+            start_time = validated_data['start_time']
+            end_time = validated_data['end_time']
+            name = validated_data['name']
+
+            shift = Shift(workday=workday, start_time=start_time, end_time=end_time, name=name)
+            shift.save()
+            return shift
+        except Exception as error:
+            return None
