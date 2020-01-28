@@ -5,6 +5,7 @@ from BarberS.settings import LOCATION_SEPARATOR
 from client.models import *
 from django.contrib.auth import authenticate
 from django.utils.translation import gettext_lazy as _
+import re
 
 
 class CustomerSerializer(serializers.ModelSerializer):
@@ -284,13 +285,22 @@ class ShiftSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         try:
             barber = Barber.objects.filter(barber_id=validated_data['barber']['barber_id']).first()
-            workday = WorkDay.objects.create(week_days=validated_data['week_days'], barber=barber)
+            week_days = validated_data['week_days']
+            if self.week_days_validator(week_days) is None:
+                return None
+            workday = WorkDay(week_days=week_days, barber=barber)
             start_time = validated_data['start_time']
             end_time = validated_data['end_time']
             name = validated_data['name']
 
+            workday.save()
             shift = Shift(workday=workday, start_time=start_time, end_time=end_time, name=name)
             shift.save()
             return shift
         except Exception as error:
             return None
+def week_days_validator(self, week_days):
+    pattern = re.compile("[01]{7}")
+    return re.match(pattern, week_days)
+
+#todo : make validator for another inputs especialy start_time and end_time
