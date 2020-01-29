@@ -67,7 +67,6 @@ class BarberSerializer(serializers.ModelSerializer):
                 return None
 
 
-
 class BarberRecordSerializer(serializers.ModelSerializer):
     id = serializers.CharField(source='barber_id')
     name = serializers.SerializerMethodField()
@@ -299,8 +298,10 @@ class ShiftSerializer(serializers.ModelSerializer):
             return shift
         except Exception as error:
             return None
+
+
 def week_days_validator(self, week_days):
     pattern = re.compile("[01]{7}")
     return re.match(pattern, week_days)
 
-#todo : make validator for another inputs especialy start_time and end_time
+# todo : make validator for another inputs especialy start_time and end_time

@@ -19,6 +19,25 @@ from client.serializers import BarberSerializer, LocationSerializer
 from client.serializers import BarberRecordSerializer
 
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_home_page(request):
+    user = request.user
+    try:
+        customer = Customer.objects.get(user=user)
+    except:
+        return Response({"status": 302}, status=status.HTTP_404_NOT_FOUND)
+    closest_data, err = ClosestBarbers.closest(0, ClosestBarbers.LIMIT, Barber.objects.all(), customer,
+                                               BarberRecordSerializer)
+    if err == 1:
+        return Response({"status": closest_data}, status=status.HTTP_400_BAD_REQUEST)
+    best_data, err = BestBarbers.best(0, BestBarbers.LIMIT, Barber.objects.all().order_by('-point'), customer,
+                                      BarberRecordSerializer)
+    if err == 1:
+        return Response({"status": best_data}, status=status.HTTP_400_BAD_REQUEST)
+    return Response({"best_barbers": best_data.data, "closest_barbers": closest_data.data})
+
+
 class BestBarbers(APIView):
     """
     API to get best barbers according to their points
@@ -27,6 +46,23 @@ class BestBarbers(APIView):
     queryset = Barber.objects.all().order_by('-point')
     serializer_class = BarberRecordSerializer
     LIMIT = 10
+
+    @staticmethod
+    def best(offset, limit, dataset, customer, serializer_class):
+        offset = limit * int(offset)
+        size = dataset.count()
+        if offset > size:
+            return 301, 1
+        elif offset + limit < size:
+            barbers = dataset[offset: offset + limit]
+        else:
+            barbers = dataset[offset:]
+        user_location = customer.location.filter(chosen=True).first()
+        if not user_location:
+            return 311, 1
+        barbers = serializer_class(barbers, many=True,
+                                   context={"user_location": user_location.location})
+        return barbers, 0
 
     def get(self, request):
         user = request.user
@@ -37,18 +73,10 @@ class BestBarbers(APIView):
         offset = request.GET.get('offset')
         if not offset:
             offset = 0
-        offset = self.LIMIT * int(offset)
-        size = self.queryset.count()
-        if offset > size:
-            return Response({"status": 301}, status=status.HTTP_400_BAD_REQUEST)
-        elif offset + self.LIMIT < size:
-            barbers = self.queryset[offset: offset + self.LIMIT]
-        else:
-            barbers = self.queryset[offset:]
-        user_location = customer.location.filter(chosen=True).first()
-        barbers = self.serializer_class(barbers, many=True,
-                                        context={"user_location": user_location.location})
-        return Response(barbers.data)
+        barbers_data, err = BestBarbers.best(offset, self.LIMIT, self.queryset, customer, self.serializer_class)
+        if err == 1:
+            return Response({"status": barbers_data}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(barbers_data.data)
 
 
 class ClosestBarbers(APIView):
@@ -59,6 +87,26 @@ class ClosestBarbers(APIView):
     queryset = Barber.objects.all()
     serializer_class = BarberRecordSerializer
     LIMIT = 10
+
+    @staticmethod
+    def closest(offset, limit, dataset, customer, serializer_class):
+        customer_location = customer.location.filter(chosen=True).first()
+        if not customer_location:
+            return 311, 1
+        queryset = sorted(dataset.all(),
+                          key=lambda barber: ClosestBarbers.cal_dist(customer_location.location, barber.location))
+
+        offset = limit * int(offset)
+        size = dataset.count()
+        if offset > size:
+            return 301, 1
+        elif offset + limit < size:
+            barbers = queryset[offset: offset + limit]
+        else:
+            barbers = queryset[offset:]
+        barbers = serializer_class(barbers, many=True,
+                                   context={"user_location": customer_location.location})
+        return barbers, 0
 
     @staticmethod
     def cal_dist(user_location, barber_location):
@@ -77,24 +125,13 @@ class ClosestBarbers(APIView):
             customer = Customer.objects.get(user=user)
         except:
             return Response({"status": 302}, status=status.HTTP_404_NOT_FOUND)
-        customer_location = customer.location.filter(chosen=True).first()
-        queryset = sorted(self.queryset.all(),
-                          key=lambda barber: ClosestBarbers.cal_dist(customer_location.location, barber.location))
-
         offset = request.GET.get('offset')
         if not offset:
             offset = 0
-        offset = self.LIMIT * int(offset)
-        size = self.queryset.count()
-        if offset > size:
-            return Response({"status": 301}, status=status.HTTP_400_BAD_REQUEST)
-        elif offset + self.LIMIT < size:
-            barbers = queryset[offset: offset + self.LIMIT]
-        else:
-            barbers = queryset[offset:]
-        barbers = self.serializer_class(barbers, many=True,
-                                        context={"user_location": customer_location.location})
-        return Response(barbers.data)
+        barbers_data, err = ClosestBarbers.closest(offset, self.LIMIT, self.queryset, customer, self.serializer_class)
+        if err == 1:
+            return Response({"status": barbers_data}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(barbers_data.data)
 
 
 class SearchBarbers(APIView):

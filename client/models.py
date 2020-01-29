@@ -7,6 +7,7 @@ from django.db.models.signals import post_save
 import random
 import datetime
 
+
 class Customer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     like = models.ManyToManyField(to='Barber', related_name='customer')
@@ -81,10 +82,17 @@ class ServiceSchema(models.Model):
 
 
 def get_project_id():
-    return 'project_{}'.format(random.randrange(1000,10000,1))
+    return 'project_{}'.format(random.randrange(1000, 10000, 1))
     # return datetime.datetime.now()
 
+
 class PresentedService(models.Model):
+    STATUS = (
+        (1, 'UNVERIFIED'),
+        (2, 'REJECTED'),
+        (3, 'VERIFIED'),
+        (4, 'DONE'),
+    )
     barber = models.ForeignKey('Barber', on_delete=models.CASCADE)
     customer = models.ForeignKey('Customer', on_delete=models.CASCADE)
     service = models.ManyToManyField(to='Service', related_name='presented_service')
@@ -92,11 +100,10 @@ class PresentedService(models.Model):
     creationTime = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     project_id = models.CharField(unique=True, default='project_0', max_length=32)
 
-    status = models.CharField(max_length=20)
+    status = models.IntegerField(choices=STATUS, default=1)
     payment = models.FloatField(default=-1)
     shift = models.CharField(max_length=20)  # what is the type of shift
     authority = models.CharField(max_length=60, default=-1)
-
 
 
 class SampleWork(models.Model):
@@ -122,9 +129,7 @@ class Shift(models.Model):
 
 class Service(models.Model):
     barber = models.ForeignKey('Barber', on_delete=models.CASCADE, related_name='services')
-    schema = models.ForeignKey('ServiceSchema', on_delete=models.CASCADE,related_name='test')
+    schema = models.ForeignKey('ServiceSchema', on_delete=models.CASCADE, related_name='test')
     cost = models.FloatField('cost of service')
     service_id = models.CharField(unique=True, max_length=32, default='service_0')
     service_number = models.CharField(max_length=50)
-
-
