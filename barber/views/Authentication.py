@@ -11,6 +11,7 @@ from django.contrib.auth import authenticate
 
 from rest_framework.authtoken.models import Token
 
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def login(request, phone=None):
@@ -27,10 +28,8 @@ def login(request, phone=None):
         return Response({"status": 120}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
-
 def login_verify(request):
     try:
         phone = request.data['phone']

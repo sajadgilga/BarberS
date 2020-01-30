@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from barber.serializers import ProjectSerializer
 from client.models import PresentedService, Service, Barber
 
 
@@ -33,13 +34,21 @@ class ProjectView(APIView):
             offset = 0
         if not project_status:
             return Response({"status": 605}, status=status.HTTP_400_BAD_REQUEST)
-        size = self.queryset.count()
+        if project_status == 'unverified':
+            queryset = self.queryset.filter(status=PresentedService.STATUS[1])
+        elif project_status == 'in_progress':
+            queryset = self.queryset.filter(status=PresentedService.STATUS[3])
+        else:
+            queryset = self.queryset.filter(status=PresentedService.STATUS[4])
+        size = queryset.count()
         if offset > size:
             return Response({"status": 606}, status=status.HTTP_400_BAD_REQUEST)
         elif offset + self.LIMIT < size:
-            projects = self.queryset[offset: offset + self.LIMIT]
+            projects = queryset[offset: offset + self.LIMIT]
         else:
-            projects = self.queryset[offset:]
+            projects = queryset[offset:]
+        projects = ProjectSerializer(projects, many=True)
+        return Response(projects.data)
 
     def post(self, request):
         user = request.user
@@ -49,6 +58,14 @@ class ProjectView(APIView):
             return Response({"status": 604}, status=status.HTTP_404_NOT_FOUND)
         if not barber.is_verified:
             return Response({"status": 600}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            date = request.data['date']
+            year, month, day = date.split('-')
+            projects = self.queryset.filter(reserveTime__year=year, reserveTime__month=month, reserveTime__day=day)
+            projects = ProjectSerializer(projects, many=True)
+            return Response(projects.data)
+        except:
+            return Response({"status": 607}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ProjectHandler(APIView):
