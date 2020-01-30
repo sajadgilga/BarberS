@@ -13,5 +13,7 @@ urlpatterns = [
     path('get_home/', Get_home.as_view()),
     path('add_sample/', add_samples),
     path('shift_handler/', shift_handler),
-    path('project/<str:action>/', ProjectHandler.as_view())
+    path('project/<str:action>/', ProjectHandler.as_view()),
+    path('project/', ProjectView.as_view()),
+    path('service_handler/', ServiceHandler.as_view())
 ]

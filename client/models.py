@@ -78,6 +78,8 @@ class ServiceSchema(models.Model):
     name = models.CharField('service name', max_length=30)
     service_schema_id = models.CharField(unique=True, max_length=32, default='service_schema_0')
     description = models.TextField()
+    lower_limit = models.IntegerField(default=0)
+    upper_limit = models.IntegerField(default=-1)
     icon = models.ImageField(upload_to='service-icons')  # is icon image?
 
 
@@ -132,4 +134,4 @@ class Service(models.Model):
     schema = models.ForeignKey('ServiceSchema', on_delete=models.CASCADE, related_name='test')
     cost = models.FloatField('cost of service')
     service_id = models.CharField(unique=True, max_length=32, default='service_0')
-    service_number = models.CharField(max_length=50)
+    service_number = models.CharField(max_length=50, default='')

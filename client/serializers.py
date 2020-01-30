@@ -132,9 +132,17 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class ServiceSchemaSerializer(serializers.ModelSerializer):
+    icon = serializers.SerializerMethodField()
+
+    def get_icon(self, obj):
+        try:
+            return obj.image.url
+        except:
+            return ''
+
     class Meta:
         model = ServiceSchema
-        fields = ['name', 'serviceId', 'description', ]
+        fields = ['name', 'service_id', 'description', 'icon']
 
 
 class ServiceSchemaSerilzerIn(serializers.Serializer):
