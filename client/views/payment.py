@@ -2,7 +2,6 @@ import datetime
 
 from django.http import HttpResponse, JsonResponse
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -41,12 +40,19 @@ class PaymentRequest(APIView):
         if barber is None:
             return Response({"status": 500},
                             status=status.HTTP_400_BAD_REQUEST)  # there is no barber with this username
-        temp_presentService_status = "not paid"
+
+
+        temp_presentService_status = 1 # 1 is the key for value UNVERIFIED
+
+
+
+
         temp_presentService = serializer.create(validated_data=serializer.validated_data, barber=barber,
                                                 status=temp_presentService_status,
                                                 customer=customer)
-        for service_number in service_id_list:
-            service = Service.objects.filter(service_number=service_number).first()
+        for service_id in service_id_list:
+            service = Service.objects.filter(service_id=service_id).first()
+
             if service is None:
                 return Response({"status": 500},
                                 status=status.HTTP_400_BAD_REQUEST)  # this service not exists for barber

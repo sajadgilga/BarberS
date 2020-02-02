@@ -45,6 +45,8 @@ class PresentedServiceAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         id = PresentedService.objects.count()
+        if obj.status == 'not paid':
+            status = 1;
         obj.project_id = 'project_{}'.format(id + 1)
         obj.save()
 

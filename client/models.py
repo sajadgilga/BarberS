@@ -80,7 +80,7 @@ class ServiceSchema(models.Model):
     description = models.TextField()
     lower_limit = models.IntegerField(default=0)
     upper_limit = models.IntegerField(default=-1)
-    icon = models.ImageField(upload_to='service-icons')  # is icon image?
+    icon = models.ImageField(upload_to='service-icons')
 
 
 def get_project_id():

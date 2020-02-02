@@ -41,7 +41,7 @@ def get_comment(request):
         comment = queryset[offset: offset + limit]
     else:
         comment = queryset[offset:]
-    serializer = CommentSerializer(comment, many=True)
+    serializer = bar_CommentSerializer(comment, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -63,12 +63,12 @@ def get_profile(request):
 
 class Get_home(APIView):
     LIMIT = 5
-    stat = ['new', 'done', 'not paid']  # statuses !
+    stat = [1, 2, 3]  # statuses !
 
     def get(self, request):
-        stat = self.stat
+        stat = PresentedService.STATUS
         length = len(stat)
-        offset = [0 for i in range(length)]
+        # offset = [0 for i in range(length)]
         queryset = [[] for i in range(length)]
         serializer = [[] for i in range(length)]
         final = []
@@ -84,23 +84,25 @@ class Get_home(APIView):
                 return Response({"status": 801}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
             for i in range(length):
-                temp = PresentedService.objects.filter(status=stat[i])
-                queryset[i] = temp
+                queryset[i] = PresentedService.objects.filter(status=stat[i][0])
 
-            for i in range(length):
-                offset[i] = request.GET.get('offset{}'.format(i + 1))
-
-            for i in range(length):
-                queryset[i] = self.manage_set(offset[i], queryset[i])
+                # for i in range(length):
+                #     offset[i] = request.GET.get('offset{}'.format(i + 1))
+                #
+                # for i in range(length):
+                #     queryset[i] = self.manage_set(offset[i], queryset[i])
                 if queryset[i] is None:
-                    return Response({"status": 804}, status=status.HTTP_400_BAD_REQUEST)
+                    queryset[i] = []
+
+            #         return Response({"status": 804}, status=status.HTTP_400_BAD_REQUEST)
 
             for i in range(length):
-                serializer[i] = PresentedServiceSerializer(queryset[i], many=True)
+                serializer[i] = PresentedServiceSerializer_home(queryset[i], many=True)
             cnt = 0
+            # extrat_data = {'barber': barber.barberName, 'name': barber.firstName + ' ' + barber.lastName}
             for i in serializer:
                 temp = {}
-                temp[stat[cnt]] = i.data
+                temp[stat[cnt][1]] = i.data
                 json = JSONRenderer().render(temp)
                 stream = io.BytesIO(json)
                 data = JSONParser().parse(stream)
@@ -114,21 +116,21 @@ class Get_home(APIView):
     def post(self, request):
         pass
 
-    def manage_set(self, offset, queryset):
-        if not offset or offset is None:
-            offset = 0
-        offset = self.LIMIT * int(offset)
-        if offset < 0:
-            offset = self.LIMIT * int(offset)
-        size = queryset.count()
-        if offset > size:
-            return None
-        elif offset + self.LIMIT < size:
-            set = queryset[offset: offset + self.LIMIT]
-        else:
-            set = queryset[offset:]
-
-        return set
+    # def manage_set(self, offset, queryset):
+    #     if not offset or offset is None:
+    #         offset = 0
+    #     offset = self.LIMIT * int(offset)
+    #     if offset < 0:
+    #         offset = self.LIMIT * int(offset)
+    #     size = queryset.count()
+    #     if offset > size:
+    #         return None
+    #     elif offset + self.LIMIT < size:
+    #         set = queryset[offset: offset + self.LIMIT]
+    #     else:
+    #         set = queryset[offset:]
+    #
+    #     return set
 
 
 @api_view(['POST'])

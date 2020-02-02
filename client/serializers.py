@@ -67,6 +67,7 @@ class BarberSerializer(serializers.ModelSerializer):
                 return None
 
 
+
 class BarberRecordSerializer(serializers.ModelSerializer):
     id = serializers.CharField(source='barber_id')
     name = serializers.SerializerMethodField()
@@ -131,6 +132,19 @@ class CommentSerializer(serializers.ModelSerializer):
         return comment
 
 
+class bar_CommentSerializer(serializers.ModelSerializer):
+    customer_id = serializers.CharField(source='customer.customer_id')
+    barber_id = serializers.CharField(source='barber.barber_id')
+    url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Comment
+        fields = ['customer_id', 'barber_id', 'text', 'url']
+
+    def get_url(self, obj):
+        return str(obj.customer.image)
+
+
 class ServiceSchemaSerializer(serializers.ModelSerializer):
     icon = serializers.SerializerMethodField()
 
@@ -171,6 +185,39 @@ class PresentedServiceSerializer(serializers.ModelSerializer):
             return l
         except Exception as error:
             return error
+
+
+class PresentedServiceSerializer_home(serializers.ModelSerializer):
+    barber_id = serializers.CharField(source='barber.barber_id')
+    customer_id = serializers.CharField(source='customer.customer_id')
+    service_list = serializers.SerializerMethodField()
+    barber_name = serializers.SerializerMethodField()
+    barber_shop = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PresentedService
+        fields = ['barber_id', 'customer_id', 'service_list', 'reserveTime', 'status', 'barber_name',
+                  'barber_shop',
+                  'payment',
+                  'shift']
+
+    def get_barber_name(self, obj):
+        # barber = Barber.objects.filter(barber_id = self.barber_id)
+        barber = obj.barber
+
+        # barber = Barber.objects.filter(barber_id =barber.barber_id).first()
+        return barber.firstName + ' ' + barber.lastName
+
+    def get_barber_shop(self, obj):
+        barber = obj.barber
+        # barber = Barber.objects.filter(barber_id = self.barber_id)
+
+        # barber = Barber.objects.filter(barber=obj.barber).first()
+        return barber.barberName
+
+    def get_service_list(self, obj):
+        service = obj.service.all()
+        return ServiceSerializer_out(service, many=True).data
 
 
 class PresentedServiceSerializer_in(serializers.ModelSerializer):
@@ -276,9 +323,16 @@ class SampleWorkSerializer_in(serializers.ModelSerializer):
 
 
 class bar_BarberSerializer(serializers.ModelSerializer):
+    service_list = serializers.SerializerMethodField()
+
     class Meta:
         model = Barber
-        fields = '__all__'
+        # fields = '__all__'
+        exclude = ['user', 'is_verified']
+
+    def get_service_list(self, obj):
+        service = Service.objects.filter(barber=obj)
+        return ServiceSerializer_out(service, many=True).data
 
 
 class ShiftSerializer(serializers.ModelSerializer):
@@ -307,9 +361,25 @@ class ShiftSerializer(serializers.ModelSerializer):
         except Exception as error:
             return None
 
+    def week_days_validator(self, week_days):
+        pattern = re.compile("[01]{7}")
+        return re.match(pattern, week_days)
 
-def week_days_validator(self, week_days):
-    pattern = re.compile("[01]{7}")
-    return re.match(pattern, week_days)
+
+class ServiceSerializer_out(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+    name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Service
+        fields = ['url', 'name', 'service_number']
+
+    def get_url(self, obj):
+        shema = obj.schema
+        return str(shema.icon)
+
+    def get_name(self, obj):
+        shema = obj.schema
+        return shema.name
 
 # todo : make validator for another inputs especialy start_time and end_time
