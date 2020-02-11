@@ -21,7 +21,7 @@ class Customer(models.Model):
         ('m', 'male')
     )
     gender = models.CharField(max_length=1, choices=genderStatus, default='m')
-    credit = models.IntegerField(default=0)
+    credit = models.BigIntegerField(default=0)
     image = models.ImageField(upload_to='customers', null=True)
     # location = models.CharField(max_length=200)
     isCompleted = models.BooleanField('', default=False)
@@ -52,7 +52,7 @@ class Barber(models.Model):
     location = models.CharField('location', max_length=200, default='')
     barberName = models.CharField(max_length=40, default='')
     point = models.FloatField(default=0)
-    point_counter = models.IntegerField(default=0)
+    point_counter = models.BigIntegerField(default=0)
     genderStatus = (
         ('f', 'female'),
         ('m', 'male')
@@ -78,9 +78,9 @@ class ServiceSchema(models.Model):
     name = models.CharField('service name', max_length=30)
     service_schema_id = models.CharField(unique=True, max_length=32, default='service_schema_0')
     description = models.TextField()
-    lower_limit = models.IntegerField(default=0)
-    upper_limit = models.IntegerField(default=-1)
-    icon = models.ImageField(upload_to='service-icons')
+    lower_limit = models.BigIntegerField(default=0)
+    upper_limit = models.BigIntegerField(default=-1)
+    icon = models.ImageField(upload_to='service-icons')  # is icon image?
 
 
 def get_project_id():
@@ -102,7 +102,7 @@ class PresentedService(models.Model):
     creationTime = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     project_id = models.CharField(unique=True, default='project_0', max_length=32)
 
-    status = models.IntegerField(choices=STATUS, default=1)
+    status = models.BigIntegerField(choices=STATUS, default=1)
     payment = models.FloatField(default=-1)
     shift = models.CharField(max_length=20)  # what is the type of shift
     authority = models.CharField(max_length=60, default=-1)
