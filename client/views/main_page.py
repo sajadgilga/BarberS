@@ -159,7 +159,7 @@ class SearchBarbers(APIView):
             return Response({"status": 306}, status=status.HTTP_400_BAD_REQUEST)
         barbers = []
         for barber in self.queryset.all():
-            services = barber.services.filter(service__serviceId__in=serviceID)
+            services = barber.services.filter(service_id__in=serviceID)
             if not services:
                 continue
             price = services.aggregate(Sum('cost'))['cost__sum']

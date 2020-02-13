@@ -98,8 +98,8 @@ class BarberRecordSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Barber
-        fields = ['id', 'name', 'image_url', 'distance']
-        read_only_fields = ['id', 'name', 'image_url', 'distance']
+        fields = ['id', 'name', 'image_url', 'distance', 'point']
+        read_only_fields = ['id', 'name', 'image_url', 'distance', 'point']
 
 
 class CommentSerializer(serializers.ModelSerializer):

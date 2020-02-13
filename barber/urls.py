@@ -2,6 +2,7 @@ from django.urls import path, include
 from barber.views.Authentication import *
 from barber.views.profile import *
 from barber.views.services import *
+from barber.views.tester import create_samples
 
 app_name = 'barber'
 urlpatterns = [
@@ -15,5 +16,6 @@ urlpatterns = [
     path('shift_handler/', shift_handler),
     path('project/<str:action>/', ProjectHandler.as_view()),
     path('project/', ProjectView.as_view()),
-    path('service_handler/', ServiceHandler.as_view())
+    path('service_handler/', ServiceHandler.as_view()),
+    path('test_sample/', create_samples)
 ]

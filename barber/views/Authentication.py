@@ -40,10 +40,12 @@ def login_verify(request):
                             status=status.HTTP_400_BAD_REQUEST)
         else:
             if login_user.code == code:
-                user = User.objects.create(username=phone, password='password')
-                id = Barber.objects.count() + 1
-                barber = Barber(user=user, barber_id='barber_{}'.format(id), phone=phone)
-                barber.save()
+                user = User.objects.filter(username=phone).first()
+                if user is None:
+                    user = User.objects.create(username=phone, password='password')
+                    id = Barber.objects.count() + 1
+                    barber = Barber(user=user, barber_id='barber_{}'.format(id), phone=phone)
+                    barber.save()
                 token, create = Token.objects.get_or_create(user=user)
                 return Response({'token': token.key})
 
