@@ -98,8 +98,8 @@ class BarberRecordSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Barber
-        fields = ['id', 'name', 'image_url', 'distance', 'point']
-        read_only_fields = ['id', 'name', 'image_url', 'distance', 'point']
+        fields = ['id', 'name', 'image_url', 'distance']
+        read_only_fields = ['id', 'name', 'image_url', 'distance']
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -274,11 +274,15 @@ class ServiceSerializer(serializers.ModelSerializer):
 
 class BarberSerializer_out(serializers.ModelSerializer):
     sample_list = serializers.SerializerMethodField()
+    services = serializers.SerializerMethodField()
 
     class Meta:
         model = Barber
         fields = ['firstName', 'lastName', 'gender', 'address', 'point', 'location', 'image', 'sample_list',
-                  'barberName']
+                  'barberName','services']
+    def get_services(self,obj):
+        services = Service.objects.filter(barber=obj)
+        return ServiceSerializer_out(services,many=True).data
 
     def get_sample_list(self, obj):
         list = SampleWork.objects.filter(barber=obj)
@@ -324,6 +328,7 @@ class SampleWorkSerializer_in(serializers.ModelSerializer):
 
 class bar_BarberSerializer(serializers.ModelSerializer):
     service_list = serializers.SerializerMethodField()
+    workday_list = serializers.SerializerMethodField()
 
     class Meta:
         model = Barber
@@ -333,6 +338,10 @@ class bar_BarberSerializer(serializers.ModelSerializer):
     def get_service_list(self, obj):
         service = Service.objects.filter(barber=obj)
         return ServiceSerializer_out(service, many=True).data
+
+    def get_workday_list(self, obj):
+        workdays = WorkDay.objects.filter(barber=obj)
+        return WorkDaySerializer(workdays, many=True).data
 
 
 class ShiftSerializer(serializers.ModelSerializer):
@@ -382,4 +391,21 @@ class ServiceSerializer_out(serializers.ModelSerializer):
         shema = obj.schema
         return shema.name
 
+
 # todo : make validator for another inputs especialy start_time and end_time
+
+class WorkDaySerializer(serializers.ModelSerializer):
+    start_time = serializers.SerializerMethodField()
+    end_time = serializers.SerializerMethodField()
+
+    class Meta:
+        model = WorkDay
+        fields = ['week_days', 'start_time', 'end_time']
+
+    def get_start_time(self, obj):
+        shift = Shift.objects.filter(workday=obj).first()
+        return shift.start_time
+
+    def get_end_time(self, obj):
+        shift = Shift.objects.filter(workday=obj).first()
+        return shift.end_time
