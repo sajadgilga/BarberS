@@ -11,6 +11,8 @@ from django.contrib.auth import authenticate
 
 from rest_framework.authtoken.models import Token
 
+from client.serializers import BarberSerializer
+
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -46,8 +48,16 @@ def login_verify(request):
                     id = Barber.objects.count() + 1
                     barber = Barber(user=user, barber_id='barber_{}'.format(id), phone=phone)
                     barber.save()
+                else:
+                    barber = Barber.objects.filter(user=user).first()
                 token, create = Token.objects.get_or_create(user=user)
-                return Response({'token': token.key})
+                serializer = BarberSerializer(barber)
+                data = serializer.data
+                data['name'] = barber.firstName + ' ' + barber.lastName
+                data['phone'] = barber.phone
+                data['id'] = barber.barber_id
+                data['token'] = token.key
+                return Response(data)
 
             else:
                 return Response({"status": 101}, status=status.HTTP_400_BAD_REQUEST)

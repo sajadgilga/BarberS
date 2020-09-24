@@ -57,8 +57,16 @@ class CustomAuthToken(ObtainAuthToken):
                     id = Customer.objects.count() + 1
                     customer = Customer(user=user, phone=phone, customer_id='customer_{}'.format(id))
                     customer.save()
+                else:
+                    customer = Customer.objects.filter(user=user).first()
                 token, create = Token.objects.get_or_create(user=user)
-                return Response({'token': token.key})
+                serializer = CustomerSerializer(customer)
+                data = serializer.data
+                data['name'] = customer.firstName + ' ' + customer.lastName
+                data['phone'] = customer.phone
+                data['id'] = customer.customer_id
+                data['token'] = token.key
+                return Response(data)
             else:
                 return Response({"status": 101}, status=status.HTTP_400_BAD_REQUEST)
         except:
@@ -76,6 +84,6 @@ def logout(request):
         if user is AnonymousUser:
             return Response({"status": 102}, status.HTTP_404_NOT_FOUND)
         user.auth_token.delete()
-        return Response({"status": 200},status=status.HTTP_200_OK)
+        return Response({"status": 200}, status=status.HTTP_200_OK)
     except:
         return Response({"status": 120}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
