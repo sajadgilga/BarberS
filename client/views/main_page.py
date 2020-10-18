@@ -188,12 +188,12 @@ class SearchBarbers(APIView):
         if not barber_name:
             return Response({"status": 306}, status=status.HTTP_400_BAD_REQUEST)
         barbers = self.queryset.filter(Q(barberName__icontains=barber_name) | Q(firstName__icontains=barber_name) | Q(
-            lastName__icontains=barber_name))
+            lastName__icontains=barber_name) | Q(name__icontains=barber_name))
         barbers = sorted(barbers,
                          key=lambda barber: ClosestBarbers.cal_dist(customer_location,
                                                                     [barber.long, barber.lat]))
         barbers = self.serializer_class(barbers, many=True, context={
-            "user_location":  customer_location})
+            "user_location": customer_location})
         return Response(barbers.data)
 
 

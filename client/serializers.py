@@ -22,6 +22,7 @@ class CustomerSerializer(serializers.ModelSerializer):
         def update(self, instance, validated_data):
             instance.firstName = validated_data['firstName']
             instance.lastName = validated_data['lastName']
+            instance.name = validated_data['firstName'] + ' ' + validated_data['lastName']
             instance.snn = validated_data['snn']
             instance.gender = validated_data['gender']
             instance.image = validated_data['image']
@@ -63,6 +64,7 @@ class BarberSerializer(serializers.ModelSerializer):
             try:
                 instance.firstName = validated_data['firstName']
                 instance.lastName = validated_data['lastName']
+                instance.name = validated_data['firstName'] + ' ' + validated_data['lastName']
                 instance.snn = validated_data['snn']
                 instance.gender = validated_data['gender']
                 instance.address = validated_data['address']
@@ -291,7 +293,7 @@ class BarberSerializer_out(serializers.ModelSerializer):
 
     class Meta:
         model = Barber
-        fields = ['firstName', 'lastName', 'gender', 'address', 'point', 'long', 'lat', 'image', 'sample_list',
+        fields = ['firstName', 'lastName', 'name', 'gender', 'address', 'point', 'long', 'lat', 'image', 'sample_list',
                   'barberName', 'services']
 
     def get_services(self, obj):

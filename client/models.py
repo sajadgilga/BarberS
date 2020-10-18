@@ -18,9 +18,10 @@ class Customer(models.Model):
     like = models.ManyToManyField(to='Barber', related_name='customer')
     phone = models.CharField('contact phone', max_length=20)
     snn = models.CharField('national code', max_length=12)
-    firstName = models.CharField('first name', max_length=20)
+    firstName = models.CharField('first name', max_length=20, default='')
+    lastName = models.CharField('last name', max_length=40, default='')
+    name = models.CharField('name', max_length=81, default='')
     email = models.EmailField('email', max_length=50)
-    lastName = models.CharField('last name', max_length=40)
     genderStatus = (
         ('f', 'female'),
         ('m', 'male')
@@ -54,6 +55,7 @@ class Barber(models.Model):
     snn = models.CharField('national code', max_length=12, default='')
     firstName = models.CharField('first name', max_length=20, default='')
     lastName = models.CharField('last name', max_length=40, default='')
+    name = models.CharField('name', max_length=81, default='')
     image = models.ImageField(null=True, storage=barber_image_fs)
     address = models.CharField('address', max_length=200, default='')
     location = models.CharField('location', max_length=200, default='')
