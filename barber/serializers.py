@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
+from BarberS.settings import SERVER_BASE_URL, generate_image_url
 from client.models import PresentedService, Service
 
 
@@ -30,7 +31,7 @@ class ProjectSerializer(ModelSerializer):
 
     def get_customer_image(self, obj):
         try:
-            return obj.customer.image.url
+            return generate_image_url(obj.customer)
         except:
             return ''
 

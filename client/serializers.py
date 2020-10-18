@@ -1,14 +1,15 @@
+import re
+
 from django.contrib.gis.geos import Point
 from rest_framework import serializers
 
-from BarberS.settings import LOCATION_SEPARATOR
+from BarberS.settings import SERVER_BASE_URL, generate_image_url
 from client.models import *
-from django.contrib.auth import authenticate
-from django.utils.translation import gettext_lazy as _
-import re
 
 
 class CustomerSerializer(serializers.ModelSerializer):
+    # image = serializers.SerializerMethodField()
+
     class Meta:
         model = Customer
         fields = ['firstName', 'lastName', 'snn', 'gender', 'credit', 'image', 'email']
@@ -28,13 +29,19 @@ class CustomerSerializer(serializers.ModelSerializer):
             instance.save()
             return instance
 
+    # def get_image(self, obj):
+    #     try:
+    #         return SERVER_BASE_URL + obj.image.url
+    #     except:
+    #         return ''
+
 
 class LocationSerializer(serializers.ModelSerializer):
     customerID = serializers.CharField(source='customer.customer_id')
 
     class Meta:
         model = Location
-        fields = ['location', 'address', 'customerID', 'ID']
+        fields = ['address', 'customerID', 'ID', 'long', 'lat']
         read_only_fields = ['ID']
 
     def create(self, validated_data):
@@ -50,7 +57,7 @@ class LocationSerializer(serializers.ModelSerializer):
 class BarberSerializer(serializers.ModelSerializer):
     class Meta:
         model = Barber
-        fields = ['firstName', 'lastName', 'snn', 'gender', 'address', 'location', 'image', 'barberName']
+        fields = ['firstName', 'lastName', 'snn', 'gender', 'address', 'long', 'lat', 'image', 'barberName', 'point']
 
         def update(self, instance, validated_data):
             try:
@@ -59,13 +66,14 @@ class BarberSerializer(serializers.ModelSerializer):
                 instance.snn = validated_data['snn']
                 instance.gender = validated_data['gender']
                 instance.address = validated_data['address']
-                instance.locations = validated_data['location']
+                instance.long = validated_data['long']
+                instance.lat = validated_data['lat']
+                # instance.locations = validated_data['location']
                 instance.barberName = validated_data['barberName']
                 instance.image = validated_data['image']
                 instance.save()
             except:
                 return None
-
 
 
 class BarberRecordSerializer(serializers.ModelSerializer):
@@ -79,7 +87,8 @@ class BarberRecordSerializer(serializers.ModelSerializer):
 
     def get_image_url(self, obj):
         try:
-            return obj.image.url
+
+            return generate_image_url(obj)
         except:
             return ''
 
@@ -87,8 +96,12 @@ class BarberRecordSerializer(serializers.ModelSerializer):
         try:
             if self.context['user_location'] == '' or obj.location == '':
                 return None
-            [user_long, user_lat] = self.context['user_location'].split(LOCATION_SEPARATOR)
-            [barber_long, barber_lat] = obj.location.split(LOCATION_SEPARATOR)
+            user_long = self.context['user_location']['long']
+            user_lat = self.context['user_location']['lat']
+            barber_long = obj.long
+            barber_lat = obj.lat
+            # [user_long, user_lat] = self.context['user_location'].split(LOCATION_SEPARATOR)
+            # [barber_long, barber_lat] = obj.location.split(LOCATION_SEPARATOR)
             p1 = Point(float(user_long), float(user_lat))
             p2 = Point(float(barber_long), float(barber_lat))
             d = p1.distance(p2)
@@ -98,8 +111,8 @@ class BarberRecordSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Barber
-        fields = ['id', 'name', 'image_url', 'distance']
-        read_only_fields = ['id', 'name', 'image_url', 'distance']
+        fields = ['id', 'name', 'image_url', 'distance', 'point']
+        read_only_fields = ['id', 'name', 'image_url', 'distance', 'point']
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -150,7 +163,7 @@ class ServiceSchemaSerializer(serializers.ModelSerializer):
 
     def get_icon(self, obj):
         try:
-            return obj.image.url
+            return SERVER_BASE_URL + obj.image.url
         except:
             return ''
 
@@ -278,11 +291,12 @@ class BarberSerializer_out(serializers.ModelSerializer):
 
     class Meta:
         model = Barber
-        fields = ['firstName', 'lastName', 'gender', 'address', 'point', 'location', 'image', 'sample_list',
-                  'barberName','services']
-    def get_services(self,obj):
+        fields = ['firstName', 'lastName', 'gender', 'address', 'point', 'long', 'lat', 'image', 'sample_list',
+                  'barberName', 'services']
+
+    def get_services(self, obj):
         services = Service.objects.filter(barber=obj)
-        return ServiceSerializer_out(services,many=True).data
+        return ServiceSerializer_out(services, many=True).data
 
     def get_sample_list(self, obj):
         list = SampleWork.objects.filter(barber=obj)
@@ -291,6 +305,14 @@ class BarberSerializer_out(serializers.ModelSerializer):
 
 class CustomerSerializer_out(serializers.ModelSerializer):
     likes = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
+    location = LocationSerializer(many=True)
+
+    def get_image(self, obj):
+        try:
+            return generate_image_url(obj)
+        except:
+            return ''
 
     class Meta:
         model = Customer

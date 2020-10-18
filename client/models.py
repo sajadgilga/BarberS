@@ -1,11 +1,16 @@
-from django.db import models
-from django.conf import settings
-from django.dispatch import receiver
-from rest_framework.authtoken.models import Token
-from django.contrib.auth.models import User
-from django.db.models.signals import post_save
 import random
-import datetime
+
+from django.contrib.auth.models import User
+from django.core.files.storage import FileSystemStorage
+from django.db import models
+from rest_framework.authtoken.models import Token
+
+from BarberS.settings import SERVER_BASE_URL
+
+client_image_fs = FileSystemStorage(location='static/images/customers', base_url=SERVER_BASE_URL)
+barber_image_fs = FileSystemStorage(location='static/images/barbers', base_url=SERVER_BASE_URL)
+service_image_fs = FileSystemStorage(location='static/images/services', base_url=SERVER_BASE_URL)
+sample_image_fs = FileSystemStorage(location='static/images/samples', base_url=SERVER_BASE_URL)
 
 
 class Customer(models.Model):
@@ -22,13 +27,15 @@ class Customer(models.Model):
     )
     gender = models.CharField(max_length=1, choices=genderStatus, default='m')
     credit = models.BigIntegerField(default=0)
-    image = models.ImageField(upload_to='customers', null=True)
+    image = models.ImageField(null=True, storage=client_image_fs)
     # location = models.CharField(max_length=200)
     isCompleted = models.BooleanField('', default=False)
     customer_id = models.CharField(max_length=48)
 
 
 class Location(models.Model):
+    long = models.FloatField(blank=True, null=True)
+    lat = models.FloatField(blank=True, null=True)
     location = models.CharField(max_length=100, default='')
     address = models.CharField(max_length=200, default='')
     customer = models.ForeignKey('Customer', on_delete=models.CASCADE, related_name='location')
@@ -47,9 +54,11 @@ class Barber(models.Model):
     snn = models.CharField('national code', max_length=12, default='')
     firstName = models.CharField('first name', max_length=20, default='')
     lastName = models.CharField('last name', max_length=40, default='')
-    image = models.ImageField(null=True, upload_to='barbers')
+    image = models.ImageField(null=True, storage=barber_image_fs)
     address = models.CharField('address', max_length=200, default='')
     location = models.CharField('location', max_length=200, default='')
+    long = models.FloatField(null=True)
+    lat = models.FloatField(null=True)
     barberName = models.CharField(max_length=40, default='')
     point = models.FloatField(default=0)
     point_counter = models.BigIntegerField(default=0)
@@ -80,7 +89,7 @@ class ServiceSchema(models.Model):
     description = models.TextField()
     lower_limit = models.BigIntegerField(default=0)
     upper_limit = models.BigIntegerField(default=-1)
-    icon = models.ImageField(upload_to='service-icons')  # is icon image?
+    icon = models.ImageField(storage=service_image_fs, null=True)  # is icon image?
 
 
 def get_project_id():
@@ -111,7 +120,7 @@ class PresentedService(models.Model):
 class SampleWork(models.Model):
     barber = models.ForeignKey('Barber', on_delete=models.CASCADE)
     description = models.TextField()
-    image = models.ImageField(upload_to='barber_samples')
+    image = models.ImageField(storage=sample_image_fs)
 
 
 class WorkDay(models.Model):

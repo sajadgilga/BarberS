@@ -143,11 +143,15 @@ LOCATION_SEPARATOR = ' -- '
 
 MAX_RESERVE_LIMIT = 1
 
+SERVER_BASE_URL = 'localhost:8000/'
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-import dj_database_url
-
-prod_db = dj_database_url.config(conn_max_age=500)
-DATABASES['default'].update(prod_db)
-
+def generate_image_url(obj):
+    return obj.image.storage.base_url + obj.image.storage.base_location + obj.image.url
+#
+# import dj_database_url
+#
+# prod_db = dj_database_url.config(conn_max_age=500)
+# DATABASES['default'].update(prod_db)
+#
