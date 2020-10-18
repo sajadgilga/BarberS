@@ -86,7 +86,7 @@ class ClosestBarbers(APIView):
         if not customer_location:
             return 311, 1
         queryset = sorted(dataset.all(),
-                          key=lambda barber: ClosestBarbers.cal_dist([customer_location.long, customer_location.lat],
+                          key=lambda barber: ClosestBarbers.cal_dist(customer_location,
                                                                      [barber.long, barber.lat]))
 
         offset = limit * int(offset)
@@ -108,12 +108,15 @@ class ClosestBarbers(APIView):
         #     return -1
         # [user_long, user_lat] = user_location.split(LOCATION_SEPARATOR)
         # [barber_long, barber_lat] = barber_location.split(LOCATION_SEPARATOR)
-        [user_long, user_lat] = user_location
-        [barber_long, barber_lat] = barber_location
-        p1 = Point(float(user_long), float(user_lat))
-        p2 = Point(float(barber_long), float(barber_lat))
-        d = p1.distance(p2)
-        return d * 10 ** 5
+        try:
+            [user_long, user_lat] = [user_location.long, user_location.lat]
+            [barber_long, barber_lat] = barber_location
+            p1 = Point(float(user_long), float(user_lat))
+            p2 = Point(float(barber_long), float(barber_lat))
+            d = p1.distance(p2)
+            return d * 10 ** 5
+        except:
+            return -1
 
     def get(self, request):
         user = request.user
@@ -162,7 +165,7 @@ class SearchBarbers(APIView):
             if price_lower_limit <= price <= price_upper_limit:
                 barbers.append(barber)
         queryset = sorted(barbers,
-                          key=lambda barber: ClosestBarbers.cal_dist([customer_location.long, customer_location.lat],
+                          key=lambda barber: ClosestBarbers.cal_dist(customer_location,
                                                                      [barber.long, barber.lat]))
         barbers = self.serializer_class(queryset, many=True, context={
             "user_location": {"long": customer_location.long, "lat": customer_location.lat}})
@@ -187,7 +190,7 @@ class SearchBarbers(APIView):
         barbers = self.queryset.filter(Q(barberName__icontains=barber_name) | Q(firstName__icontains=barber_name) | Q(
             lastName__icontains=barber_name))
         barbers = sorted(barbers,
-                         key=lambda barber: ClosestBarbers.cal_dist([customer_location.long, customer_location.lat],
+                         key=lambda barber: ClosestBarbers.cal_dist(customer_location,
                                                                     [barber.long, barber.lat]))
         barbers = self.serializer_class(barbers, many=True, context={
             "user_location": {"long": customer_location.long, "lat": customer_location.lat}})
