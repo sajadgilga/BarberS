@@ -3,7 +3,7 @@ import re
 from django.contrib.gis.geos import Point
 from rest_framework import serializers
 
-from BarberS.settings import SERVER_BASE_URL, generate_image_url
+from BarberS.settings import generate_image_url
 from client.models import *
 
 
@@ -16,19 +16,19 @@ class CustomerSerializer(serializers.ModelSerializer):
 
         # phone deleted !!!!!!!!!!!
 
-        def create(self, validated_data):
-            return Customer(**validated_data)
+    def create(self, validated_data):
+        return Customer(**validated_data)
 
-        def update(self, instance, validated_data):
-            instance.firstName = validated_data['firstName']
-            instance.lastName = validated_data['lastName']
-            instance.name = validated_data['firstName'] + ' ' + validated_data['lastName']
-            instance.snn = validated_data['snn']
-            instance.gender = validated_data['gender']
-            instance.image = validated_data['image']
-            instance.email = validated_data['email']
-            instance.save()
-            return instance
+    def update(self, instance, validated_data):
+        instance.firstName = validated_data['firstName']
+        instance.lastName = validated_data['lastName']
+        instance.name = validated_data['firstName'] + ' ' + validated_data['lastName']
+        instance.snn = validated_data['snn']
+        instance.gender = validated_data['gender']
+        instance.image = validated_data['image']
+        instance.email = validated_data['email']
+        instance.save()
+        return instance
 
     # def get_image(self, obj):
     #     try:
@@ -58,24 +58,26 @@ class LocationSerializer(serializers.ModelSerializer):
 class BarberSerializer(serializers.ModelSerializer):
     class Meta:
         model = Barber
-        fields = ['firstName', 'lastName', 'snn', 'gender', 'address', 'long', 'lat', 'image', 'barberName', 'point']
+        fields = ['firstName', 'lastName', 'snn', 'gender', 'name', 'address', 'long', 'lat', 'image', 'barberName',
+                  'point']
 
-        def update(self, instance, validated_data):
-            try:
-                instance.firstName = validated_data['firstName']
-                instance.lastName = validated_data['lastName']
-                instance.name = validated_data['firstName'] + ' ' + validated_data['lastName']
-                instance.snn = validated_data['snn']
-                instance.gender = validated_data['gender']
-                instance.address = validated_data['address']
-                instance.long = validated_data['long']
-                instance.lat = validated_data['lat']
-                # instance.locations = validated_data['location']
-                instance.barberName = validated_data['barberName']
-                instance.image = validated_data['image']
-                instance.save()
-            except:
-                return None
+    def update(self, instance, validated_data):
+        try:
+            instance.firstName = validated_data['firstName']
+            instance.lastName = validated_data['lastName']
+            instance.name = validated_data['firstName'] + ' ' + validated_data['lastName']
+            instance.snn = validated_data['snn']
+            instance.gender = validated_data['gender']
+            instance.address = validated_data['address']
+            instance.long = validated_data['long']
+            instance.lat = validated_data['lat']
+            # instance.locations = validated_data['location']
+            instance.barberName = validated_data['barberName']
+            instance.image = validated_data['image']
+            instance.save()
+            return instance
+        except:
+            return instance
 
 
 class BarberRecordSerializer(serializers.ModelSerializer):
@@ -353,6 +355,7 @@ class SampleWorkSerializer_in(serializers.ModelSerializer):
 class bar_BarberSerializer(serializers.ModelSerializer):
     service_list = serializers.SerializerMethodField()
     workday_list = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = Barber
@@ -366,6 +369,12 @@ class bar_BarberSerializer(serializers.ModelSerializer):
     def get_workday_list(self, obj):
         workdays = WorkDay.objects.filter(barber=obj)
         return WorkDaySerializer(workdays, many=True).data
+
+    def get_image(self, obj):
+        try:
+            return generate_image_url(obj)
+        except:
+            return ''
 
 
 class ShiftSerializer(serializers.ModelSerializer):

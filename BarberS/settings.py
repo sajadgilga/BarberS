@@ -9,8 +9,9 @@ https://docs.djangoproject.com/en/2.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.1/ref/settings/
 """
-from zeep import Client
 import os
+
+from zeep import Client
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -146,6 +147,7 @@ MAX_RESERVE_LIMIT = 1
 SERVER_BASE_URL = 'http://5.253.24.199:8000/'
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 
 def generate_image_url(obj):
     return obj.image.storage.base_url + obj.image.storage.base_location + obj.image.url

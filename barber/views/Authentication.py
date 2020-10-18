@@ -18,11 +18,12 @@ from client.serializers import BarberSerializer
 @permission_classes([AllowAny])
 def login(request, phone=None):
     try:
-        login_user = LoginUser.objects.filter(phone=phone).first()
+        login_user = LoginUser.objects.filter(phone=phone)
         maincode = str(random.randrange(1000, 10000, 1))
-        if login_user is None:
+        if len(login_user) == 0:
             LoginUser.objects.create(phone=phone, code=maincode)
         else:
+            login_user = login_user.first()
             login_user.code = maincode
             login_user.save()
         return Response({maincode})
