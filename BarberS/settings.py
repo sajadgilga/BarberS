@@ -143,7 +143,7 @@ LOCATION_SEPARATOR = ' -- '
 
 MAX_RESERVE_LIMIT = 1
 
-SERVER_BASE_URL = 'localhost:8000/'
+SERVER_BASE_URL = 'http://5.253.24.199:8000/'
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
