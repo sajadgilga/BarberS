@@ -94,10 +94,10 @@ class BarberRecordSerializer(serializers.ModelSerializer):
 
     def get_distance(self, obj):
         try:
-            if self.context['user_location'] == '' or obj.location == '':
+            if not self.context['user_location']:
                 return None
-            user_long = self.context['user_location']['long']
-            user_lat = self.context['user_location']['lat']
+            user_long = self.context['user_location'].long
+            user_lat = self.context['user_location'].lat
             barber_long = obj.long
             barber_lat = obj.lat
             # [user_long, user_lat] = self.context['user_location'].split(LOCATION_SEPARATOR)

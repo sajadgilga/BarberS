@@ -53,7 +53,7 @@ class BestBarbers(APIView):
         if not user_location:
             return 311, 1
         barbers = serializer_class(barbers, many=True,
-                                   context={"user_location": {"long": user_location.long, "lat": user_location.lat}})
+                                   context={"user_location": user_location})
         return barbers, 0
 
     def get(self, request):
@@ -99,7 +99,7 @@ class ClosestBarbers(APIView):
             barbers = queryset[offset:]
         barbers = serializer_class(barbers, many=True,
                                    context={
-                                       "user_location": {"long": customer_location.long, "lat": customer_location.lat}})
+                                       "user_location": customer_location})
         return barbers, 0
 
     @staticmethod
@@ -168,7 +168,7 @@ class SearchBarbers(APIView):
                           key=lambda barber: ClosestBarbers.cal_dist(customer_location,
                                                                      [barber.long, barber.lat]))
         barbers = self.serializer_class(queryset, many=True, context={
-            "user_location": {"long": customer_location.long, "lat": customer_location.lat}})
+            "user_location": customer_location})
         return Response(barbers.data)
 
     def get(self, request):
@@ -193,7 +193,7 @@ class SearchBarbers(APIView):
                          key=lambda barber: ClosestBarbers.cal_dist(customer_location,
                                                                     [barber.long, barber.lat]))
         barbers = self.serializer_class(barbers, many=True, context={
-            "user_location": {"long": customer_location.long, "lat": customer_location.lat}})
+            "user_location":  customer_location})
         return Response(barbers.data)
 
 
