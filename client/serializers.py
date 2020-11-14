@@ -4,6 +4,7 @@ from django.contrib.gis.geos import Point
 from rest_framework import serializers
 
 from BarberS.settings import generate_image_url
+from barber.serializers import ServiceSerializer
 from client.models import *
 
 
@@ -56,10 +57,21 @@ class LocationSerializer(serializers.ModelSerializer):
 
 
 class BarberSerializer(serializers.ModelSerializer):
+    isTop = serializers.SerializerMethodField()
+
     class Meta:
         model = Barber
         fields = ['firstName', 'lastName', 'snn', 'gender', 'name', 'address', 'long', 'lat', 'image', 'barberName',
-                  'point']
+                  'point', 'isTop']
+        read_only_fields = ['isTop']
+
+    def get_isTop(self, obj):
+        if obj.isTopBarber > 0:
+            return True
+        if obj.isTopBarber < 0:
+            return False
+        appSettings = AppSettings.load()
+        return obj.point >= appSettings.threshold
 
     def update(self, instance, validated_data):
         try:
@@ -74,6 +86,7 @@ class BarberSerializer(serializers.ModelSerializer):
             # instance.locations = validated_data['location']
             instance.barberName = validated_data['barberName']
             instance.image = validated_data['image']
+            instance.is_verified = True
             instance.save()
             return instance
         except:
@@ -85,6 +98,7 @@ class BarberRecordSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
     image_url = serializers.SerializerMethodField()
     distance = serializers.SerializerMethodField()
+    isTop = serializers.SerializerMethodField()
 
     def get_name(self, obj):
         return '{} {}'.format(obj.firstName, obj.lastName)
@@ -115,8 +129,16 @@ class BarberRecordSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Barber
-        fields = ['id', 'name', 'image_url', 'distance', 'point']
-        read_only_fields = ['id', 'name', 'image_url', 'distance', 'point']
+        fields = ['id', 'name', 'image_url', 'distance', 'point', 'isTop']
+        read_only_fields = ['id', 'name', 'image_url', 'distance', 'point', 'isTop']
+
+    def get_isTop(self, obj):
+        if obj.isTopBarber > 0:
+            return True
+        if obj.isTopBarber < 0:
+            return False
+        appSettings = AppSettings.load()
+        return obj.point >= appSettings.threshold
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -160,20 +182,6 @@ class bar_CommentSerializer(serializers.ModelSerializer):
 
     def get_url(self, obj):
         return str(obj.customer.image)
-
-
-class ServiceSchemaSerializer(serializers.ModelSerializer):
-    icon = serializers.SerializerMethodField()
-
-    def get_icon(self, obj):
-        try:
-            return SERVER_BASE_URL + obj.image.url
-        except:
-            return ''
-
-    class Meta:
-        model = ServiceSchema
-        fields = ['name', 'service_id', 'description', 'icon']
 
 
 class ServiceSchemaSerilzerIn(serializers.Serializer):
@@ -234,7 +242,7 @@ class PresentedServiceSerializer_home(serializers.ModelSerializer):
 
     def get_service_list(self, obj):
         service = obj.service.all()
-        return ServiceSerializer_out(service, many=True).data
+        return ServiceSerializer(service, many=True).data
 
 
 class PresentedServiceSerializer_in(serializers.ModelSerializer):
@@ -268,43 +276,53 @@ class PresentedServiceSerializer_in(serializers.ModelSerializer):
     #     except:
     #         return None
 
-
-class ServiceSerializer(serializers.ModelSerializer):
-    service_schemaID = serializers.IntegerField(source='service.serviceId')
-    barber_id = serializers.CharField(source='barber.barber_id')
-
-    class Meta:
-        model = Service
-        fields = ['barber_id', 'service_schemaID', 'cost']
-
-    def create(self, validated_data):
-        try:
-            cost = validated_data['cost']
-            barber = Barber.objects.filter(barber_id=validated_data['barber']['barber_id']).first()
-            service = Customer.objects.filter(customer_id=validated_data['service']['serviceId']).first()
-        except:
-            return None
-        service_number = Service.count() + 1
-        service(cost=cost, barber=barber, service=service, service_number="service_{}".format(service_number))
-        service.save()
+#
+# class ServiceSerializer(serializers.ModelSerializer):
+#     service_schemaID = serializers.IntegerField(source='service.serviceId')
+#     barber_id = serializers.CharField(source='barber.barber_id')
+#
+#     class Meta:
+#         model = Service
+#         fields = ['barber_id', 'service_schemaID', 'cost']
+#
+#     def create(self, validated_data):
+#         try:
+#             cost = validated_data['cost']
+#             barber = Barber.objects.filter(barber_id=validated_data['barber']['barber_id']).first()
+#             service = Customer.objects.filter(customer_id=validated_data['service']['serviceId']).first()
+#         except:
+#             return None
+#         service_number = Service.count() + 1
+#         service(cost=cost, barber=barber, service=service, service_number="service_{}".format(service_number))
+#         service.save()
 
 
 class BarberSerializer_out(serializers.ModelSerializer):
     sample_list = serializers.SerializerMethodField()
     services = serializers.SerializerMethodField()
+    isTop = serializers.SerializerMethodField()
 
     class Meta:
         model = Barber
         fields = ['firstName', 'lastName', 'name', 'gender', 'address', 'point', 'long', 'lat', 'image', 'sample_list',
-                  'barberName', 'services']
+                  'barberName', 'services', 'isTop']
+        read_only_fields = ['isTop']
 
     def get_services(self, obj):
         services = Service.objects.filter(barber=obj)
-        return ServiceSerializer_out(services, many=True).data
+        return ServiceSerializer(services, many=True).data
 
     def get_sample_list(self, obj):
         list = SampleWork.objects.filter(barber=obj)
         return SampleWorkSerializer(list, many=True).data
+
+    def get_isTop(self, obj):
+        if obj.isTopBarber > 0:
+            return True
+        if obj.isTopBarber < 0:
+            return False
+        appSettings = AppSettings.load()
+        return obj.point >= appSettings.threshold
 
 
 class CustomerSerializer_out(serializers.ModelSerializer):
@@ -364,7 +382,7 @@ class bar_BarberSerializer(serializers.ModelSerializer):
 
     def get_service_list(self, obj):
         service = Service.objects.filter(barber=obj)
-        return ServiceSerializer_out(service, many=True).data
+        return ServiceSerializer(service, many=True).data
 
     def get_workday_list(self, obj):
         workdays = WorkDay.objects.filter(barber=obj)
@@ -380,10 +398,13 @@ class bar_BarberSerializer(serializers.ModelSerializer):
 class ShiftSerializer(serializers.ModelSerializer):
     barber_id = serializers.CharField(source='barber.barber_id')
     week_days = serializers.CharField(max_length=7, default='0000000')
+    start_time = serializers.TimeField(format='%H:%M')
+    end_time = serializers.TimeField(format='%H:%M')
 
     class Meta:
         model = Shift
-        fields = ['week_days', 'name', 'start_time', 'end_time', 'name', 'barber_id']
+        fields = ['week_days', 'name', 'start_time', 'end_time', 'barber_id']
+        # read_only_fields = ['barber_id']
 
     def create(self, validated_data):
         try:
@@ -407,23 +428,23 @@ class ShiftSerializer(serializers.ModelSerializer):
         pattern = re.compile("[01]{7}")
         return re.match(pattern, week_days)
 
-
-class ServiceSerializer_out(serializers.ModelSerializer):
-    url = serializers.SerializerMethodField()
-    name = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Service
-        fields = ['url', 'name', 'service_number']
-
-    def get_url(self, obj):
-        shema = obj.schema
-        return str(shema.icon)
-
-    def get_name(self, obj):
-        shema = obj.schema
-        return shema.name
-
+#
+# class ServiceSerializer_out(serializers.ModelSerializer):
+#     url = serializers.SerializerMethodField()
+#     name = serializers.SerializerMethodField()
+#
+#     class Meta:
+#         model = Service
+#         fields = ['url', 'name', 'service_number']
+#
+#     def get_url(self, obj):
+#         shema = obj.schema
+#         return str(shema.icon)
+#
+#     def get_name(self, obj):
+#         shema = obj.schema
+#         return shema.name
+#
 
 # todo : make validator for another inputs especialy start_time and end_time
 

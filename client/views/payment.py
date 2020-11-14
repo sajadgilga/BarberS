@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from django.shortcuts import redirect
 
 from BarberS import settings
+from BarberS.utils import get_error_obj
 from client.serializers import *
 from client.models import Barber, Customer, PresentedService, WorkDay
 from zeep import Client as client
@@ -20,25 +21,25 @@ class PaymentRequest(APIView):
         payment = 0
         user = request.user
         if user is None:
-            return Response({"status": 500}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(get_error_obj('no_data_found'), status=status.HTTP_400_BAD_REQUEST)
         customer = Customer.objects.filter(phone=user.username).first()  # customer not exists
         if customer is None:
-            return Response({"status": 502}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(get_error_obj('wrong_parameters'), status=status.HTTP_400_BAD_REQUEST)
         try:
             data = request.data
             data['customer_id'] = customer.customer_id
             serializer = PresentedServiceSerializer_in(data=data)
         except Exception as error:
-            return Response({"status": 502} + error, status=status.HTTP_400_BAD_REQUEST)  # invalid data
+            return Response(get_error_obj('wrong_parameters') + error, status=status.HTTP_400_BAD_REQUEST)  # invalid data
         if serializer.is_valid():
             barber_id = serializer.validated_data['barber']['barber_id']
 
             service_id_list = serializer.validated_data['service_id_list']  # todo: serviceId must change to service_id
         else:
-            return Response({"status": 503}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(get_error_obj('wrong_parameters'), status=status.HTTP_400_BAD_REQUEST)
         barber = Barber.objects.filter(barber_id=barber_id).first()
         if barber is None:
-            return Response({"status": 500},
+            return Response(get_error_obj('no_data_found'),
                             status=status.HTTP_400_BAD_REQUEST)  # there is no barber with this username
 
 
@@ -54,7 +55,7 @@ class PaymentRequest(APIView):
             service = Service.objects.filter(service_id=service_id).first()
 
             if service is None:
-                return Response({"status": 500},
+                return Response(get_error_obj('no_data_found'),
                                 status=status.HTTP_400_BAD_REQUEST)  # this service not exists for barber
             payment = payment + service.cost
             temp_presentService.service.add(service)
@@ -74,7 +75,7 @@ class PaymentRequest(APIView):
             # PresentedService.objects.filter(temp_presentService).delete()
         else:
             PresentedService.objects.filter(id=temp_presentService.id).delete()
-            return Response({"status": 502}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(get_error_obj('wrong_parameters'), status=status.HTTP_400_BAD_REQUEST)
 
     def check_reserve(self, presnted_service, barber):
         week_day = presnted_service.reserveTime.date().weekday()

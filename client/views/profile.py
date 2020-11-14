@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from BarberS.utils import get_error_obj
 from client.serializers import *
 from client.models import Barber, Customer, PresentedService
 
@@ -24,12 +25,12 @@ def barber_profile(request):
     try:
         barber_id = request.data['barber']
     except:
-        return Response({"status": 402}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(get_error_obj('wrong_parameters'), status=status.HTTP_400_BAD_REQUEST)
     if barber_id is None:
-        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(get_error_obj('no_data_found'), status=status.HTTP_400_BAD_REQUEST)
     barber = Barber.objects.filter(barber_id=barber_id).first()
     if barber is None:
-        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(get_error_obj('no_data_found'), status=status.HTTP_400_BAD_REQUEST)
     serializer = BarberSerializer_out(barber)
 
     return Response(serializer.data)
@@ -43,12 +44,12 @@ def barber_profile(request):
 def customer_profile(request):
     user = request.user
     if user is None:
-        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(get_error_obj('no_data_found'), status=status.HTTP_400_BAD_REQUEST)
     customer = Customer.objects.filter(user=request.user).first()
     if customer is None:
-        return Response({"status": 400}, status=status.HTTP_404_NOT_FOUND)
+        return Response(get_error_obj('no_data_found'), status=status.HTTP_404_NOT_FOUND)
     if customer.isCompleted is False:
-        return Response({"status": 401}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return Response(get_error_obj('access_denied'), status=status.HTTP_405_METHOD_NOT_ALLOWED)
     serializer = CustomerSerializer_out(customer)
     return Response(serializer.data)
 
@@ -68,7 +69,7 @@ def customer_change_profile(request):
     customer = Customer.objects.filter(user=user).first()
     # customer.image = request.data['image']
     if customer is None:
-        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(get_error_obj('no_data_found'), status=status.HTTP_400_BAD_REQUEST)
     serializer = CustomerSerializer(data=request.data)
     if serializer.is_valid():
         customer = serializer.update(customer, serializer.validated_data)
@@ -79,7 +80,7 @@ def customer_change_profile(request):
 
     else:
         # return Response({str(serializer.errors)})
-        return Response({"status": 403}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(get_error_obj('wrong_parameters'), status=status.HTTP_400_BAD_REQUEST)
 
 
 @permission_classes([IsAuthenticated])
@@ -92,14 +93,14 @@ def get_like(request):
     offset = limit * int(offset)
     user = request.user
     if user is None:
-        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(get_error_obj('no_data_found'), status=status.HTTP_400_BAD_REQUEST)
     customer = Customer.objects.filter(user=user).first()
     if customer.isCompleted is False:
-        return Response({"status": 401}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return Response(get_error_obj('access_denied'), status=status.HTTP_405_METHOD_NOT_ALLOWED)
     queryset = Barber.objects.filter(customer__user=user)
     size = queryset.count()
     if offset > size:
-        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(get_error_obj('no_data_found'), status=status.HTTP_400_BAD_REQUEST)
     elif offset + limit < size:
         barbers = queryset[offset: offset + limit]
     else:
@@ -117,17 +118,17 @@ def get_reserved_service(request):
         offset = 0
     offset = limit * int(offset)
     if offset < 0:
-        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(get_error_obj('no_data_found'), status=status.HTTP_400_BAD_REQUEST)
     user = request.user
     if user is None:
-        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(get_error_obj('no_data_found'), status=status.HTTP_400_BAD_REQUEST)
     customer = Customer.objects.get(user=user)
     if customer.isCompleted is False:
-        return Response({"status": 401}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response(get_error_obj('access_denied'), status=status.HTTP_401_UNAUTHORIZED)
     queryset = PresentedService.objects.filter(customer__user=user)
     size = queryset.count()
     if offset > size:
-        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(get_error_obj('no_data_found'), status=status.HTTP_400_BAD_REQUEST)
     elif offset + limit < size:
         services = queryset[offset: offset + limit]
     else:
@@ -166,27 +167,27 @@ def barber_comment(request, barber_id):
         offset = 0
     offset = limit * int(offset)
     if offset < 0:
-        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(get_error_obj('no_data_found'), status=status.HTTP_400_BAD_REQUEST)
     user = request.user
     if user is None:
-        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(get_error_obj('no_data_found'), status=status.HTTP_400_BAD_REQUEST)
     customer = Customer.objects.filter(user=user).first()
     if customer is None:
-        return Response({"status": 400}, status=status.HTTP_404_NOT_FOUND)
+        return Response(get_error_obj('no_data_found'), status=status.HTTP_404_NOT_FOUND)
     if customer.isCompleted is False:
-        return Response({"status": 401}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return Response(get_error_obj('access_denied'), status=status.HTTP_405_METHOD_NOT_ALLOWED)
     if barber_id is None:
-        Response({"status": 402}, status.HTTP_400_BAD_REQUEST)  # barber id does not send
+        Response(get_error_obj('wrong_parameters'), status.HTTP_400_BAD_REQUEST)  # barber id does not send
     barber = Barber.objects.filter(barber_id=barber_id).first()
     if barber is None:
-        return Response({"status": 400}, status=status.HTTP_404_NOT_FOUND)  # barber not exists:status 400
+        return Response(get_error_obj('no_data_found'), status=status.HTTP_404_NOT_FOUND)  # barber not exists:status 400
     try:
         queryset = Comment.objects.filter(barber=barber).order_by('created_time')
     except:
-        return Response({"status": 400}, status=status.HTTP_404_NOT_FOUND)
+        return Response(get_error_obj('no_data_found'), status=status.HTTP_404_NOT_FOUND)
     size = queryset.count()
     if offset > size:
-        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(get_error_obj('no_data_found'), status=status.HTTP_400_BAD_REQUEST)
     elif offset + limit < size:
         comment = queryset[offset: offset + limit]
     else:
@@ -205,12 +206,12 @@ no return '''
 def send_comment(request):
     user = request.user
     if user is None:
-        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(get_error_obj('no_data_found'), status=status.HTTP_400_BAD_REQUEST)
     customer = Customer.objects.filter(user=request.user).first()
     if customer is None:
-        return Response({"status": 400}, status=status.HTTP_404_NOT_FOUND)
+        return Response(get_error_obj('no_data_found'), status=status.HTTP_404_NOT_FOUND)
     if customer.isCompleted is False:
-        return Response({"status": 401}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return Response(get_error_obj('access_denied'), status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
     data = request.data
     data['customer_id'] = customer.customer_id
@@ -219,12 +220,12 @@ def send_comment(request):
         # barber_id = serializer.validated_data['barber']['barber_id']
         # barber = Barber.objects.filter(barber_id=barber_id)
         # if barber is None:
-        #     return Response({"status": 400}, status=status.HTTP_404_NOT_FOUND)
+        #     return Response(get_error_obj('no_data_found'), status=status.HTTP_404_NOT_FOUND)
         comment = serializer.create(serializer.validated_data)
         if comment is None:
-            return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(get_error_obj('no_data_found'), status=status.HTTP_400_BAD_REQUEST)
     else:
-        return Response({"status": 402}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(get_error_obj('wrong_parameters'), status=status.HTTP_400_BAD_REQUEST)
     return Response({"status": 200}, status=status.HTTP_200_OK)
 
 
@@ -243,16 +244,16 @@ def customer_likes(request):
     offset = limit * int(offset)
 
     if user is None:
-        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(get_error_obj('no_data_found'), status=status.HTTP_400_BAD_REQUEST)
     customer = Customer.objects.filter(user=user).first()
     if customer is None:
-        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(get_error_obj('no_data_found'), status=status.HTTP_400_BAD_REQUEST)
     if customer.isCompleted is False:
-        return Response({"status": 401}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response(get_error_obj('access_denied'), status=status.HTTP_401_UNAUTHORIZED)
     queryset = customer.like.all()
     size = queryset.count()
     if offset > size:
-        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(get_error_obj('no_data_found'), status=status.HTTP_400_BAD_REQUEST)
     elif offset + limit < size:
         barbers = queryset[offset: offset + limit]
     else:
@@ -272,18 +273,18 @@ def add_like(request):
     try:
         barber_id = request.data['barber']
     except:
-        return Response({"status": 402}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(get_error_obj('wrong_parameters'), status=status.HTTP_400_BAD_REQUEST)
 
     barber = Barber.objects.filter(barber_id=barber_id).first()
     if barber is None:
-        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(get_error_obj('no_data_found'), status=status.HTTP_400_BAD_REQUEST)
     if user is None:
-        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(get_error_obj('no_data_found'), status=status.HTTP_400_BAD_REQUEST)
     customer = Customer.objects.filter(user=user).first()
     if customer is None:
-        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(get_error_obj('no_data_found'), status=status.HTTP_400_BAD_REQUEST)
     if customer.isCompleted is False:
-        return Response({"status": 401}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return Response(get_error_obj('access_denied'), status=status.HTTP_405_METHOD_NOT_ALLOWED)
     customer.like.add(barber)
     return Response({"status": 200}, status=status.HTTP_200_OK)
 
@@ -302,19 +303,19 @@ def score(request):
     if customer is None:
         return Response(status=status.HTTP_404_NOT_FOUND)
     if customer.isCompleted is False:
-        return Response({"status": 401}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return Response(get_error_obj('access_denied'), status=status.HTTP_405_METHOD_NOT_ALLOWED)
     try:
         barber_id = request.data['barber_id']
         point = request.data['point']
     except:
-        return Response({"status": 400}, status=status.HTTP_404_NOT_FOUND)
+        return Response(get_error_obj('no_data_found'), status=status.HTTP_404_NOT_FOUND)
     if point > point_limit:
-        return Response({"status": 403}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(get_error_obj('wrong_parameters'), status=status.HTTP_400_BAD_REQUEST)
     if point < 0:
-        return Response({"status": 403}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(get_error_obj('wrong_parameters'), status=status.HTTP_400_BAD_REQUEST)
     barber = Barber.objects.filter(barber_id=barber_id).first()
     if barber is None:
-        return Response({"status": 400}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(get_error_obj('no_data_found'), status=status.HTTP_400_BAD_REQUEST)
     barber_point = barber.point
     point_counter = barber.point_counter
     barber_point = (float)(point + barber_point * point_counter) / (point_counter + 1)

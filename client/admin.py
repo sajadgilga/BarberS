@@ -3,6 +3,8 @@ from django.contrib import admin
 # Register your models here.
 from client.models import *
 
+admin.site.register(AppSettings)
+
 
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):
@@ -60,7 +62,7 @@ class SampleWorkAdmin(admin.ModelAdmin):
 
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
-    list_display = ( 'barber', 'cost',)
+    list_display = ('barber', 'cost',)
     list_filter = ('barber', 'cost',)
     search_fields = ('barber', 'cost',)
 

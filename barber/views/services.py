@@ -4,9 +4,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from barber.serializers import ProjectSerializer
+from BarberS.utils import get_error_obj
+from barber.serializers import ProjectSerializer, ServiceSchemaSerializer
 from client.models import PresentedService, Service, Barber, ServiceSchema
-from client.serializers import ServiceSchemaSerilzerIn, ServiceSchemaSerializer
 
 
 class ServiceHandler(APIView):
@@ -18,12 +18,13 @@ class ServiceHandler(APIView):
         try:
             cost = request.data['cost']
         except:
-            return Response({"status": 607}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(get_error_obj('wrong_parameters', 'no parameter cost sent'),
+                            status=status.HTTP_400_BAD_REQUEST)
         schema = ServiceSchema.objects.filter(service_schema_id=service_id).first()
-        if schema.lower_limit is not 0 and schema.lower_limit > cost:
-            return Response({"status": 608}, status=status.HTTP_409_CONFLICT)
-        if schema.upper_limit is not -1 and schema.upper_limit < cost:
-            return Response({"status": 608}, status=status.HTTP_409_CONFLICT)
+        if schema.lower_limit != 0 and schema.lower_limit > cost:
+            return Response(get_error_obj('wrong_parameters', 'cost is out of range'), status=status.HTTP_409_CONFLICT)
+        if schema.upper_limit != -1 and schema.upper_limit < cost:
+            return Response(get_error_obj('wrong_parameters', 'cost is out of range'), status=status.HTTP_409_CONFLICT)
         service = Service.objects.filter(schema__service_schema_id=service_id, barber=barber).first()
         if not service:
             service = Service(service_id="service_{}".format(Service.objects.count() + 1))
@@ -31,46 +32,47 @@ class ServiceHandler(APIView):
             service.schema = schema
         service.cost = cost
         service.save()
-        return Response()
+        return Response({"status": 200})
 
     def delete(self, service_id, barber):
         service = Service.objects.filter(schema__service_schema_id=service_id, barber=barber).first()
         if not service:
-            return Response({"status": 609}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(get_error_obj('no_data_found'), status=status.HTTP_400_BAD_REQUEST)
         service.delete()
-        return Response()
+        return Response({"status": 200})
 
     def get(self, request):
         try:
             schemas = ServiceSchema.objects.all()
             schemas = ServiceSchemaSerializer(schemas, many=True)
             return Response(schemas.data)
-        except:
-            return Response({"status": 610}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)  # general problem
+        except Exception as e:
+            return Response(get_error_obj('server_error', str(e)),
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)  # general problem
 
     def post(self, request):
         user = request.user
         try:
             barber = Barber.objects.filter(user=user).first()
         except:
-            return Response({"status": 604}, status=status.HTTP_404_NOT_FOUND)
+            return Response(get_error_obj('access_denied'), status=status.HTTP_404_NOT_FOUND)
         if not barber.is_verified:
-            return Response({"status": 600}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(get_error_obj('access_denied'), status=status.HTTP_401_UNAUTHORIZED)
         action = 1
-        try:
+        if 'action' in request.data:
             action = request.data['action']
-        except:
-            pass
         try:
             service_id = request.data['service_id']
         except:
-            return Response({"status": 607}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(get_error_obj('wrong_parameters', 'no service id was sent'),
+                            status=status.HTTP_400_BAD_REQUEST)
         if action == 1:
-            self.create_or_update(request, service_id, barber)
+            return self.create_or_update(request, service_id, barber)
         elif action == 2:
-            self.delete(service_id, barber)
+            return self.delete(service_id, barber)
         else:
-            return Response({"status": 607}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(get_error_obj('wrong_parameters', 'this action is not in action list'),
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 class ProjectView(APIView):
@@ -84,24 +86,26 @@ class ProjectView(APIView):
         try:
             barber = Barber.objects.filter(user=user).first()
         except:
-            return Response({"status": 604}, status=status.HTTP_404_NOT_FOUND)
+            return Response(get_error_obj('access_denied'), status=status.HTTP_404_NOT_FOUND)
         if not barber.is_verified:
-            return Response({"status": 600}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(get_error_obj('access_denied'), status=status.HTTP_401_UNAUTHORIZED)
         project_status = request.GET.get('status')
-        offset = request.GET.get('offset')
+        offset = int(request.GET.get('offset'))
         if not offset:
             offset = 0
         if not project_status:
-            return Response({"status": 605}, status=status.HTTP_400_BAD_REQUEST)
-        if project_status == 'unverified':
-            queryset = self.queryset.filter(status=PresentedService.STATUS[1])
+            # return Response(get_error_obj('wrong_parameters', 'no project status declared'),
+            #                 status=status.HTTP_400_BAD_REQUEST)
+            queryset = self.queryset
+        elif project_status == 'unverified':
+            queryset = self.queryset.filter(status=PresentedService.STATUS[0][0])
         elif project_status == 'in_progress':
-            queryset = self.queryset.filter(status=PresentedService.STATUS[3])
+            queryset = self.queryset.filter(status=PresentedService.STATUS[2][0])
         else:
-            queryset = self.queryset.filter(status=PresentedService.STATUS[4])
+            queryset = self.queryset.filter(status=PresentedService.STATUS[3][0])
         size = queryset.count()
         if offset > size:
-            return Response({"status": 606}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(get_error_obj('wrong_parameters'), status=status.HTTP_400_BAD_REQUEST)
         elif offset + self.LIMIT < size:
             projects = queryset[offset: offset + self.LIMIT]
         else:
@@ -114,9 +118,9 @@ class ProjectView(APIView):
         try:
             barber = Barber.objects.filter(user=user).first()
         except:
-            return Response({"status": 604}, status=status.HTTP_404_NOT_FOUND)
+            return Response(get_error_obj('access_denied'), status=status.HTTP_404_NOT_FOUND)
         if not barber.is_verified:
-            return Response({"status": 600}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(get_error_obj('access_denied'), status=status.HTTP_401_UNAUTHORIZED)
         try:
             date = request.data['date']
             year, month, day = date.split('-')
@@ -124,7 +128,7 @@ class ProjectView(APIView):
             projects = ProjectSerializer(projects, many=True)
             return Response(projects.data)
         except:
-            return Response({"status": 607}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(get_error_obj('server_error'), status=status.HTTP_400_BAD_REQUEST)
 
 
 class ProjectHandler(APIView):
@@ -133,30 +137,35 @@ class ProjectHandler(APIView):
     queryset = PresentedService.objects.all()
     ACTIONS = ['verify', 'reject', 'end']
 
-    def get(self, request, action):
+    def post(self, request, action):
         if action not in self.ACTIONS:
-            return Response({"status": 601}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(get_error_obj('wrong_parameters', 'this action is not in action list'),
+                            status=status.HTTP_400_BAD_REQUEST)
         try:
             project_id = request.data['reserved_service_id']
         except:
-            return Response({"status": 602}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(get_error_obj('no_data_found', 'no reserved service found for this id'),
+                            status=status.HTTP_400_BAD_REQUEST)
         user = request.user
+        i_barber = Barber.objects.filter(user=user).first()
         project = self.queryset.filter(project_id=project_id).first()
-        if project.barber.user is not user:
-            return Response({"status": 603}, status=status.HTTP_401_UNAUTHORIZED)
+        if project.barber.barber_id != i_barber.barber_id:
+            return Response(get_error_obj('access_denied', 'you are not the owner of this reserved service'),
+                            status=status.HTTP_401_UNAUTHORIZED)
         if action == self.ACTIONS[0]:
             self.verify(project)
         elif action == self.ACTIONS[1]:
             self.reject(project)
         else:
             self.end(project)
-        return Response()
+        project.save()
+        return Response({"status": 200})
 
     def verify(self, project):
-        project.status = PresentedService.STATUS[3]
+        project.status = PresentedService.STATUS[2][0]
 
     def reject(self, project):
-        project.status = PresentedService.STATUS[2]
+        project.status = PresentedService.STATUS[1][0]
 
     def end(self, project):
-        project.status = PresentedService.STATUS[4]
+        project.status = PresentedService.STATUS[3][0]

@@ -28,6 +28,6 @@ urlpatterns = [
     path('add_like/', add_like),
     path('request/', PaymentRequest.as_view()),
     path('verify/', verify),
-    path('score/', score)
+    path('score/', score),
 
 ]

@@ -14,6 +14,7 @@ import os
 from zeep import Client
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Quick-start development settings - unsuitable for production
@@ -147,6 +148,42 @@ MAX_RESERVE_LIMIT = 1
 SERVER_BASE_URL = 'http://5.253.24.199:8000/'
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+
+error_status = {
+    'server_error': {
+        'code': 199,
+        'message': 'مشکل ناشناخته‌ای در پردازش درخواست پیش آمد'
+    },
+    'auth_failure': {
+        'code': 121,
+        'message': 'ورود به مشکل برخورد'
+    },
+    'auth_no_code_found': {
+        'code': 103,
+        'message': 'کد مورد نظر یافت نشد'
+    },
+    'auth_wrong_code': {
+        'code': 101,
+        'message': 'کد اشتباه وارد شده'
+    },
+    'wrong_parameters': {
+        'code': 804,
+        'message': 'پارامتر‌های ارسالی اشتباه است'
+    },
+    'no_data_found': {
+        'code': 802,
+        'message': 'داده‌ی مربوط یافت نشد'
+    },
+    'access_denied': {
+        'code': 1006,
+        'message': 'شما دسترسی به این عملیات را ندارید'
+    },
+    'no_location_found': {
+        'code': 311,
+        'message': 'موقعیت مکانی ثبت نشده'
+    },
+}
 
 
 def generate_image_url(obj):

@@ -1,6 +1,8 @@
 from random import random
 from rest_framework import status
 from rest_framework.response import Response
+
+from BarberS.utils import get_error_obj
 from client.models import Customer, LoginUser, Barber
 from django.contrib.auth.models import User, AnonymousUser
 import random
@@ -28,7 +30,7 @@ def login(request, phone=None):
             login_user.save()
         return Response({maincode})
     except:
-        return Response({"status": 120}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(get_error_obj('server_error'), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
@@ -39,7 +41,7 @@ def login_verify(request):
         code = request.data['code']
         login_user = LoginUser.objects.filter(phone=phone).first()
         if login_user is None:
-            return Response({"status": 103},
+            return Response(get_error_obj('auth_no_code_found'),
                             status=status.HTTP_400_BAD_REQUEST)
         else:
             if login_user.code == code:
@@ -61,6 +63,6 @@ def login_verify(request):
                 return Response(data)
 
             else:
-                return Response({"status": 101}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(get_error_obj('auth_wrong_code'), status=status.HTTP_400_BAD_REQUEST)
     except:
-        return Response({"status": 120}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(get_error_obj('auth_failure'), status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -13,6 +13,27 @@ service_image_fs = FileSystemStorage(location='static/images/services', base_url
 sample_image_fs = FileSystemStorage(location='static/images/samples', base_url=SERVER_BASE_URL)
 
 
+class SingletonModel(models.Model):
+    class Meta:
+        abstract = True
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super(SingletonModel, self).save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        pass
+
+    @classmethod
+    def load(cls):
+        obj, created = cls.objects.get_or_create(pk=1)
+        return obj
+
+
+class AppSettings(SingletonModel):
+    threshold = models.FloatField(default=4)
+
+
 class Customer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     like = models.ManyToManyField(to='Barber', related_name='customer')
@@ -75,6 +96,7 @@ class Barber(models.Model):
     )
     barber_id = models.CharField(max_length=32, unique=True, default='barber_id_0')
     is_verified = models.BooleanField(default=False)
+    isTopBarber = models.IntegerField(default=0)
 
 
 class Comment(models.Model):
