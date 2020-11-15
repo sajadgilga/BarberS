@@ -1,25 +1,22 @@
+import random
+
+from django.contrib.auth.models import User, AnonymousUser
 from rest_framework import status
-from rest_framework.authentication import TokenAuthentication
+from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from BarberS.utils import get_error_obj
-from client.models import Customer, LoginUser, Barber
-from django.contrib.auth.models import User, AnonymousUser
-import random
-from rest_framework.decorators import api_view, permission_classes, APIView, authentication_classes
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from django.contrib.auth import authenticate
-from rest_framework.authtoken.models import Token
-from django.http import HttpResponseNotAllowed
-from django.shortcuts import redirect
+from client.models import Customer, LoginUser
 from client.serializers import CustomerSerializer
 
 ''' custom view for login and authentication .
     make a random 4 digits code 
     use get method to detect a duplicates phone number and
     post method to make a token
-    also for useres that loged out make a new token (in the post method )
+    also for useres that loed out make a new token (in the post method )
 '''
 
 

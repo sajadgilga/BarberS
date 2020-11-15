@@ -144,28 +144,43 @@ class ProjectHandler(APIView):
         try:
             project_id = request.data['reserved_service_id']
         except:
-            return Response(get_error_obj('no_data_found', 'no reserved service found for this id'),
+            return Response(get_error_obj('wrong_parameters', 'no reserved service id sent'),
                             status=status.HTTP_400_BAD_REQUEST)
         user = request.user
         i_barber = Barber.objects.filter(user=user).first()
         project = self.queryset.filter(project_id=project_id).first()
+        if not project:
+            return Response(get_error_obj('no_data_found', 'no reserved service found for this id'),
+                            status=status.HTTP_400_BAD_REQUEST)
         if project.barber.barber_id != i_barber.barber_id:
             return Response(get_error_obj('access_denied', 'you are not the owner of this reserved service'),
                             status=status.HTTP_401_UNAUTHORIZED)
+        res = 0
         if action == self.ACTIONS[0]:
-            self.verify(project)
+            res = self.verify(project)
         elif action == self.ACTIONS[1]:
-            self.reject(project)
+            res = self.reject(project)
         else:
-            self.end(project)
+            res = self.end(project)
         project.save()
+        if res != 0:
+            return Response(get_error_obj('not_allowed_action'), status=status.HTTP_400_BAD_REQUEST)
         return Response({"status": 200})
 
     def verify(self, project):
-        project.status = PresentedService.STATUS[2][0]
+        if project.status == PresentedService.STATUS[0][0]:
+            project.status = PresentedService.STATUS[2][0]
+            return 0
+        return 1
 
     def reject(self, project):
-        project.status = PresentedService.STATUS[1][0]
+        if project.status == PresentedService.STATUS[0][0]:
+            project.status = PresentedService.STATUS[1][0]
+            return 0
+        return 1
 
     def end(self, project):
-        project.status = PresentedService.STATUS[3][0]
+        if project.status == PresentedService.STATUS[2][0]:
+            project.status = PresentedService.STATUS[3][0]
+            return 0
+        return 1

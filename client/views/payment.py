@@ -1,17 +1,16 @@
 import datetime
 
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.shortcuts import redirect
+from zeep import Client as client
 
 from BarberS import settings
 from BarberS.utils import get_error_obj
-from client.serializers import *
 from client.models import Barber, Customer, PresentedService, WorkDay
-from zeep import Client as client
+from client.serializers import *
 
 
 class PaymentRequest(APIView):
@@ -30,7 +29,8 @@ class PaymentRequest(APIView):
             data['customer_id'] = customer.customer_id
             serializer = PresentedServiceSerializer_in(data=data)
         except Exception as error:
-            return Response(get_error_obj('wrong_parameters') + error, status=status.HTTP_400_BAD_REQUEST)  # invalid data
+            return Response(get_error_obj('wrong_parameters', str(error)),
+                            status=status.HTTP_400_BAD_REQUEST)  # invalid data
         if serializer.is_valid():
             barber_id = serializer.validated_data['barber']['barber_id']
 
@@ -42,11 +42,7 @@ class PaymentRequest(APIView):
             return Response(get_error_obj('no_data_found'),
                             status=status.HTTP_400_BAD_REQUEST)  # there is no barber with this username
 
-
-        temp_presentService_status = 1 # 1 is the key for value UNVERIFIED
-
-
-
+        temp_presentService_status = 1  # 1 is the key for value UNVERIFIED
 
         temp_presentService = serializer.create(validated_data=serializer.validated_data, barber=barber,
                                                 status=temp_presentService_status,
@@ -75,15 +71,16 @@ class PaymentRequest(APIView):
             # PresentedService.objects.filter(temp_presentService).delete()
         else:
             PresentedService.objects.filter(id=temp_presentService.id).delete()
-            return Response(get_error_obj('wrong_parameters'), status=status.HTTP_400_BAD_REQUEST)
+            return Response(get_error_obj('wrong_parameters', 'requested time is not in user\'s shifts'),
+                            status=status.HTTP_400_BAD_REQUEST)
 
     def check_reserve(self, presnted_service, barber):
         week_day = presnted_service.reserveTime.date().weekday()
         work_day = WorkDay.objects.filter(barber=barber).first()
-        if work_day.week_days[week_day] is "0":
+        if work_day.week_days[week_day] == "0":
             return False
         date = presnted_service.reserveTime.date()
-        if PresentedService.objects.filter(shift=presnted_service.shift).count()-1 is 0:
+        if PresentedService.objects.filter(shift=presnted_service.shift).count() - 1 == 0:
             return False
         cnt = PresentedService.objects.filter(reserveTime__day=date.day, reserveTime__month=date.month,
                                               reserveTime__year=date.year,

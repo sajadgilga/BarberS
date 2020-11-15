@@ -192,20 +192,20 @@ class ServiceSchemaSerilzerIn(serializers.Serializer):
 class PresentedServiceSerializer(serializers.ModelSerializer):
     barber_id = serializers.CharField(source='barber.barber_id')
     customer_id = serializers.CharField(source='customer.customer_id')
-    serviceId_list = serializers.SerializerMethodField()
+    service_id_list = serializers.SerializerMethodField()
 
     class Meta:
         model = PresentedService
-        fields = ['barber_id', 'customer_id', 'serviceId_list', 'reserveTime', 'status',
+        fields = ['barber_id', 'customer_id', 'service_id_list', 'reserveTime', 'status',
                   'payment',
                   'shift']
 
-    def get_serviceId_list(self, obj):
+    def get_service_id_list(self, obj):
         all = obj.service.all()
         try:
             l = []
             for i in all:
-                id = i.service_number
+                id = i.service_id
                 l.append(id)
             return l
         except Exception as error:

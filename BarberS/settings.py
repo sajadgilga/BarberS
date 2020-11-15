@@ -183,6 +183,10 @@ error_status = {
         'code': 311,
         'message': 'موقعیت مکانی ثبت نشده'
     },
+    'not_allowed_action': {
+        'code': 1001,
+        'message': 'این درخواست قابل قبول نیست'
+    }
 }
 
 
