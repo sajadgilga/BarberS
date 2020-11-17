@@ -13,6 +13,14 @@ from client.serializers import BarberRecordSerializer
 from client.serializers import LocationSerializer
 
 
+class SampleLocation:
+    long = None
+    lat = None
+
+    def __init__(self, long, lat):
+        self.long = long
+        self.lat = lat
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_configs(request):
@@ -28,10 +36,7 @@ def get_home_page(request):
     except:
         return Response(get_error_obj('no_data_found'), status=status.HTTP_404_NOT_FOUND)
     long, lat = request.GET.get('long'), request.GET.get('lat')
-    user_location = {
-        "long": long,
-        "lat": lat
-    }
+    user_location = SampleLocation(long, lat)
     if not long or not lat:
         user_location = customer.location.filter(chosen=True).first()
 
@@ -81,10 +86,7 @@ class BestBarbers(APIView):
         if not offset:
             offset = 0
         long, lat = request.GET.get('long'), request.GET.get('lat')
-        user_location = {
-            "long": long,
-            "lat": lat
-        }
+        user_location = SampleLocation(long, lat)
         if not long or not lat:
             user_location = customer.location.filter(chosen=True).first()
         barbers_data, err = BestBarbers.best(offset, self.LIMIT, self.queryset, user_location, self.serializer_class)
@@ -149,10 +151,7 @@ class ClosestBarbers(APIView):
         if not offset:
             offset = 0
         long, lat = request.GET.get('long'), request.GET.get('lat')
-        user_location = {
-            "long": long,
-            "lat": lat
-        }
+        user_location = SampleLocation(long, lat)
         if not long or not lat:
             user_location = customer.location.filter(chosen=True).first()
         barbers_data, err = ClosestBarbers.closest(offset, self.LIMIT, self.queryset, user_location,
@@ -179,10 +178,7 @@ class SearchBarbers(APIView):
         except:
             return Response(get_error_obj('no_data_found'), status=status.HTTP_404_NOT_FOUND)
         long, lat = request.GET.get('long'), request.GET.get('lat')
-        user_location = {
-            "long": long,
-            "lat": lat
-        }
+        user_location = SampleLocation(long, lat)
         if not long or not lat:
             user_location = customer.location.filter(chosen=True).first()
         if not user_location:
@@ -221,10 +217,7 @@ class SearchBarbers(APIView):
             return Response(get_error_obj('no_data_found'), status=status.HTTP_404_NOT_FOUND)
 
         long, lat = request.GET.get('long'), request.GET.get('lat')
-        user_location = {
-            "long": long,
-            "lat": lat
-        }
+        user_location = SampleLocation(long, lat)
         if not long or not lat:
             user_location = customer.location.filter(chosen=True).first()
         if not user_location:
