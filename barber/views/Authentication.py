@@ -1,18 +1,15 @@
+import random
 from random import random
+
+from django.contrib.auth.models import User
 from rest_framework import status
+from rest_framework.authtoken.models import Token
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from BarberS.utils import get_error_obj
-from client.models import Customer, LoginUser, Barber
-from django.contrib.auth.models import User, AnonymousUser
-import random
-from rest_framework.decorators import api_view, permission_classes, APIView, authentication_classes
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.authentication import TokenAuthentication
-from django.contrib.auth import authenticate
-
-from rest_framework.authtoken.models import Token
-
+from client.models import LoginUser, Barber
 from client.serializers import BarberSerializer
 
 
@@ -37,8 +34,13 @@ def login(request, phone=None):
 @permission_classes([AllowAny])
 def login_verify(request):
     try:
+        if any(d not in request.data for d in ['phone', 'code', 'name', 'gender']):
+            return Response(get_error_obj('wrong_parameters', 'name, gender, phone & code must be sent in body'),
+                            status=status.HTTP_400_BAD_REQUEST)
         phone = request.data['phone']
         code = request.data['code']
+        name = request.data['name']
+        gender = request.data['gender']
         login_user = LoginUser.objects.filter(phone=phone).first()
         if login_user is None:
             return Response(get_error_obj('auth_no_code_found'),
@@ -50,13 +52,18 @@ def login_verify(request):
                     user = User.objects.create(username=phone, password='password')
                     id = Barber.objects.count() + 1
                     barber = Barber(user=user, barber_id='barber_{}'.format(id), phone=phone)
+                    barber.gender = gender
+                    barber.name = name
                     barber.save()
                 else:
                     barber = Barber.objects.filter(user=user).first()
+                    barber.gender = gender
+                    barber.name = name
+                    barber.save()
                 token, create = Token.objects.get_or_create(user=user)
                 serializer = BarberSerializer(barber)
                 data = serializer.data
-                data['name'] = barber.firstName + ' ' + barber.lastName
+                data['name'] = barber.name
                 data['phone'] = barber.phone
                 data['id'] = barber.barber_id
                 data['token'] = token.key

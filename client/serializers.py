@@ -23,7 +23,9 @@ class CustomerSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.firstName = validated_data['firstName']
         instance.lastName = validated_data['lastName']
-        instance.name = validated_data['firstName'] + ' ' + validated_data['lastName']
+        if not validated_data['name']:
+            instance.name = validated_data['firstName'] + ' ' + validated_data['lastName']
+        instance.name = validated_data['name']
         instance.snn = validated_data['snn']
         instance.gender = validated_data['gender']
         instance.image = validated_data['image']
@@ -77,7 +79,10 @@ class BarberSerializer(serializers.ModelSerializer):
         try:
             instance.firstName = validated_data['firstName']
             instance.lastName = validated_data['lastName']
-            instance.name = validated_data['firstName'] + ' ' + validated_data['lastName']
+            if not validated_data['name']:
+                instance.name = validated_data['firstName'] + ' ' + validated_data['lastName']
+            else:
+                instance.name = validated_data['name']
             instance.snn = validated_data['snn']
             instance.gender = validated_data['gender']
             instance.address = validated_data['address']
@@ -101,7 +106,9 @@ class BarberRecordSerializer(serializers.ModelSerializer):
     isTop = serializers.SerializerMethodField()
 
     def get_name(self, obj):
-        return '{} {}'.format(obj.firstName, obj.lastName)
+        if not obj.name or obj.name == '':
+            return '{} {}'.format(obj.firstName, obj.lastName)
+        return obj.name
 
     def get_image_url(self, obj):
         try:
@@ -336,9 +343,10 @@ class CustomerSerializer_out(serializers.ModelSerializer):
         except:
             return ''
 
+
     class Meta:
         model = Customer
-        fields = ['firstName', 'lastName', 'snn', 'phone', 'gender', 'location', 'image', 'likes']
+        fields = ['firstName', 'lastName', 'name', 'snn', 'phone', 'gender', 'location', 'image', 'likes']
 
     def get_likes(self, obj):
         list = obj.like.all()

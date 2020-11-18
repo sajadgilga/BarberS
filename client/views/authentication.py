@@ -42,8 +42,13 @@ class CustomAuthToken(ObtainAuthToken):
     # username and pass will send with a post method
     def post(self, request, *args, **kwargs):
         try:
+            if any(d not in request.data for d in ['phone', 'code', 'name', 'gender']):
+                return Response(get_error_obj('wrong_parameters', 'name, gender, phone & code must be sent in body'),
+                                status=status.HTTP_400_BAD_REQUEST)
             phone = request.data['phone']
             code = request.data['code']
+            name = request.data['name']
+            gender = request.data['gender']
             login_user = LoginUser.objects.filter(phone=phone).first()
             if login_user is None:
                 return Response(get_error_obj('auth_no_code_found'),
@@ -55,13 +60,18 @@ class CustomAuthToken(ObtainAuthToken):
                     user = User.objects.create(username=phone, password='password')
                     id = Customer.objects.count() + 1
                     customer = Customer(user=user, phone=phone, customer_id='customer_{}'.format(id))
+                    customer.gender = gender
+                    customer.name = name
                     customer.save()
                 else:
                     customer = Customer.objects.filter(user=user).first()
+                    customer.gender = gender
+                    customer.name = name
+                    customer.save()
                 token, create = Token.objects.get_or_create(user=user)
                 serializer = CustomerSerializer(customer)
                 data = serializer.data
-                data['name'] = customer.firstName + ' ' + customer.lastName
+                data['name'] = customer.name
                 data['phone'] = customer.phone
                 data['id'] = customer.customer_id
                 data['token'] = token.key

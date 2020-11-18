@@ -68,6 +68,16 @@ class Location(models.Model):
 class LoginUser(models.Model):  # or login barber
     code = models.CharField('verification code ', max_length=6)
     phone = models.CharField('logged in phone', max_length=12, unique=True)
+    # name = models.CharField(max_length=81, default='')
+    # genderStatus = (
+    #     ('f', 'female'),
+    #     ('m', 'male')
+    # )
+    # gender = models.CharField(
+    #     max_length=1,
+    #     choices=genderStatus,
+    #     default='m'
+    # )
 
 
 class Barber(models.Model):
