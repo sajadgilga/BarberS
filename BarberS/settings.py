@@ -191,7 +191,7 @@ error_status = {
 
 
 def generate_image_url(obj):
-    return f'{obj.image.storage.base_url}{obj.image.storage.base_location}/{obj.image.name}'
+    return obj.image.storage.base_url + obj.image.storage.base_location + '/' + obj.image.name
 #
 # import dj_database_url
 #
