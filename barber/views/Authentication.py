@@ -1,5 +1,5 @@
 import random
-from random import random
+# from random import random
 
 from django.contrib.auth.models import User
 from rest_framework import status
@@ -10,7 +10,7 @@ from rest_framework.response import Response
 
 from BarberS.utils import get_error_obj
 from client.models import LoginUser, Barber
-from client.serializers import BarberSerializer
+from client.serializers import BarberSerializer, bar_BarberSerializer, BarberSerializer_out
 
 
 @api_view(['GET'])
@@ -61,11 +61,11 @@ def login_verify(request):
                     barber.name = name
                     barber.save()
                 token, create = Token.objects.get_or_create(user=user)
-                serializer = BarberSerializer(barber)
+                serializer = BarberSerializer_out(barber)
                 data = serializer.data
-                data['name'] = barber.name
+                # data['name'] = barber.name
                 data['phone'] = barber.phone
-                data['id'] = barber.barber_id
+                # data['id'] = barber.barber_id
                 data['token'] = token.key
                 return Response(data)
 

@@ -2,11 +2,9 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from BarberS.utils import get_error_obj
 from client.serializers import *
-from client.models import Barber, Customer, PresentedService
 
 '''api for showing barber profile '''
 
@@ -70,16 +68,19 @@ def customer_change_profile(request):
     # customer.image = request.data['image']
     if customer is None:
         return Response(get_error_obj('no_data_found'), status=status.HTTP_400_BAD_REQUEST)
-    serializer = CustomerSerializer(data=request.data)
-    if serializer.is_valid():
-        customer = serializer.update(customer, serializer.validated_data)
-        # customer.image = request.FILES['image']
-        customer.isCompleted = True
-        customer.save()
-        return Response({"status": 200}, status=status.HTTP_200_OK)
+    try:
+        serializer = CustomerSerializer(data=request.data)
+        if serializer.is_valid():
+            customer = serializer.update(customer, serializer.validated_data)
+            # customer.image = request.FILES['image']
+            customer.isCompleted = True
+            customer.save()
+            return Response({"status": 200}, status=status.HTTP_200_OK)
 
-    else:
-        # return Response({str(serializer.errors)})
+        else:
+            # return Response({str(serializer.errors)})
+            return Response(get_error_obj('wrong_parameters'), status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
         return Response(get_error_obj('wrong_parameters'), status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -180,7 +181,8 @@ def barber_comment(request, barber_id):
         Response(get_error_obj('wrong_parameters'), status.HTTP_400_BAD_REQUEST)  # barber id does not send
     barber = Barber.objects.filter(barber_id=barber_id).first()
     if barber is None:
-        return Response(get_error_obj('no_data_found'), status=status.HTTP_404_NOT_FOUND)  # barber not exists:status 400
+        return Response(get_error_obj('no_data_found'),
+                        status=status.HTTP_404_NOT_FOUND)  # barber not exists:status 400
     try:
         queryset = Comment.objects.filter(barber=barber).order_by('created_time')
     except:
@@ -214,7 +216,7 @@ def send_comment(request):
         return Response(get_error_obj('access_denied'), status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
     data = request.data
-    data['customer_id'] = customer.customer_id
+    data['customer'] = {'customer_id': customer.customer_id}
     serializer = CommentSerializer(data=data)
     if serializer.is_valid():
         # barber_id = serializer.validated_data['barber']['barber_id']

@@ -10,7 +10,7 @@ from rest_framework.response import Response
 
 from BarberS.utils import get_error_obj
 from client.models import Customer, LoginUser
-from client.serializers import CustomerSerializer
+from client.serializers import CustomerSerializer, CustomerSerializer_out
 
 ''' custom view for login and authentication .
     make a random 4 digits code 
@@ -69,7 +69,7 @@ class CustomAuthToken(ObtainAuthToken):
                     customer.name = name
                     customer.save()
                 token, create = Token.objects.get_or_create(user=user)
-                serializer = CustomerSerializer(customer)
+                serializer = CustomerSerializer_out(customer)
                 data = serializer.data
                 data['name'] = customer.name
                 data['phone'] = customer.phone

@@ -21,11 +21,12 @@ class CustomerSerializer(serializers.ModelSerializer):
         return Customer(**validated_data)
 
     def update(self, instance, validated_data):
-        instance.firstName = validated_data['firstName']
-        instance.lastName = validated_data['lastName']
-        if not validated_data['name']:
+        # instance.firstName = validated_data['firstName']
+        # instance.lastName = validated_data['lastName']
+        if 'name' not in validated_data:
             instance.name = validated_data['firstName'] + ' ' + validated_data['lastName']
-        instance.name = validated_data['name']
+        else:
+            instance.name = validated_data['name']
         instance.snn = validated_data['snn']
         instance.gender = validated_data['gender']
         instance.image = validated_data['image']
@@ -77,8 +78,8 @@ class BarberSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         try:
-            instance.firstName = validated_data['firstName']
-            instance.lastName = validated_data['lastName']
+            # instance.firstName = validated_data['firstName']
+            # instance.lastName = validated_data['lastName']
             if not validated_data['name']:
                 instance.name = validated_data['firstName'] + ' ' + validated_data['lastName']
             else:
@@ -146,49 +147,6 @@ class BarberRecordSerializer(serializers.ModelSerializer):
             return False
         appSettings = AppSettings.load()
         return obj.point >= appSettings.threshold
-
-
-class CommentSerializer(serializers.ModelSerializer):
-    customer_id = serializers.CharField(source='customer.customer_id')
-    barber_id = serializers.CharField(source='barber.barber_id')
-
-    class Meta:
-        model = Comment
-        fields = ['customer_id', 'barber_id', 'text']
-
-    def create(self, validated_data):
-        text = validated_data['text']
-
-        try:
-            barber_id = validated_data['barber']['barber_id']
-            barber = Barber.objects.filter(barber_id=barber_id).first()
-        except Exception as error:
-            return None
-        try:
-            customer_id = validated_data['customer']['customer_id']
-            customer = Customer.objects.filter(customer_id=customer_id).first()
-        except Exception as error:
-            print(error)
-            return None
-        if barber is None:
-            return None
-
-        comment = Comment.objects.create(customer=customer, barber=barber, text=text)
-        comment.save()
-        return comment
-
-
-class bar_CommentSerializer(serializers.ModelSerializer):
-    customer_id = serializers.CharField(source='customer.customer_id')
-    barber_id = serializers.CharField(source='barber.barber_id')
-    url = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Comment
-        fields = ['customer_id', 'barber_id', 'text', 'url']
-
-    def get_url(self, obj):
-        return str(obj.customer.image)
 
 
 class ServiceSchemaSerilzerIn(serializers.Serializer):
@@ -283,6 +241,7 @@ class PresentedServiceSerializer_in(serializers.ModelSerializer):
     #     except:
     #         return None
 
+
 #
 # class ServiceSerializer(serializers.ModelSerializer):
 #     service_schemaID = serializers.IntegerField(source='service.serviceId')
@@ -311,8 +270,8 @@ class BarberSerializer_out(serializers.ModelSerializer):
 
     class Meta:
         model = Barber
-        fields = ['firstName', 'lastName', 'name', 'gender', 'address', 'point', 'long', 'lat', 'image', 'sample_list',
-                  'barberName', 'services', 'isTop']
+        fields = ['name', 'gender', 'address', 'point', 'long', 'lat', 'image', 'sample_list',
+                  'barberName', 'services', 'isTop', 'barber_id']
         read_only_fields = ['isTop']
 
     def get_services(self, obj):
@@ -343,14 +302,69 @@ class CustomerSerializer_out(serializers.ModelSerializer):
         except:
             return ''
 
-
     class Meta:
         model = Customer
-        fields = ['firstName', 'lastName', 'name', 'snn', 'phone', 'gender', 'location', 'image', 'likes']
+        fields = ['name', 'snn', 'phone', 'gender', 'location', 'image', 'likes',
+                  'customer_id']
 
     def get_likes(self, obj):
         list = obj.like.all()
         return BarberSerializer_out(list, many=True).data
+
+
+class LeanCustomerSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
+    def get_image(self, obj):
+        try:
+            return generate_image_url(obj)
+        except:
+            return ''
+
+    class Meta:
+        model = Customer
+        fields = ['name', 'gender', 'image',
+                  'customer_id']
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    customer = LeanCustomerSerializer()
+    barber_id = serializers.CharField(source='barber.barber_id')
+
+    class Meta:
+        model = Comment
+        fields = ['customer', 'barber_id', 'text', 'created_time']
+        read_only_fields = ['created_time', ]
+
+    def create(self, validated_data):
+        text = validated_data['text']
+
+        try:
+            barber_id = validated_data['barber']['barber_id']
+            barber = Barber.objects.filter(barber_id=barber_id).first()
+        except Exception as error:
+            return None
+        try:
+            customer_id = validated_data['customer']['customer_id']
+            customer = Customer.objects.filter(customer_id=customer_id).first()
+        except Exception as error:
+            print(error)
+            return None
+        if barber is None:
+            return None
+
+        comment = Comment.objects.create(customer=customer, barber=barber, text=text)
+        comment.save()
+        return comment
+
+
+class bar_CommentSerializer(serializers.ModelSerializer):
+    customer = LeanCustomerSerializer()
+    barber_id = serializers.CharField(source='barber.barber_id')
+
+    class Meta:
+        model = Comment
+        fields = ['customer', 'barber_id', 'text', 'created_time']
 
 
 class SampleWorkSerializer(serializers.ModelSerializer):
@@ -435,6 +449,7 @@ class ShiftSerializer(serializers.ModelSerializer):
     def week_days_validator(self, week_days):
         pattern = re.compile("[01]{7}")
         return re.match(pattern, week_days)
+
 
 #
 # class ServiceSerializer_out(serializers.ModelSerializer):

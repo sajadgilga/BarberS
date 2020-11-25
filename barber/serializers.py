@@ -16,7 +16,7 @@ class ServiceSchemaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ServiceSchema
-        fields = ['name', 'service_schema_id', 'description', 'icon']
+        fields = ['name', 'service_schema_id', 'description', 'icon', 'lower_limit', 'upper_limit']
 
 
 class ServiceSerializer(ModelSerializer):
@@ -28,7 +28,7 @@ class ServiceSerializer(ModelSerializer):
 
     class Meta:
         model = Service
-        fields = ['name', 'service_id', 'schema']
+        fields = ['name', 'service_id', 'schema', 'cost']
 
 
 class ProjectSerializer(ModelSerializer):
