@@ -71,9 +71,9 @@ class CustomAuthToken(ObtainAuthToken):
                 token, create = Token.objects.get_or_create(user=user)
                 serializer = CustomerSerializer_out(customer)
                 data = serializer.data
-                data['name'] = customer.name
+                # data['name'] = customer.name
                 data['phone'] = customer.phone
-                data['id'] = customer.customer_id
+                # data['id'] = customer.customer_id
                 data['token'] = token.key
                 return Response(data)
             else:
