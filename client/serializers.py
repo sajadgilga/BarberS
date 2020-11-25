@@ -13,7 +13,7 @@ class CustomerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Customer
-        fields = ['firstName', 'lastName', 'snn', 'gender', 'credit', 'image', 'email']
+        fields = ['snn', 'gender', 'credit', 'image', 'email', 'name']
 
         # phone deleted !!!!!!!!!!!
 
@@ -23,10 +23,7 @@ class CustomerSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         # instance.firstName = validated_data['firstName']
         # instance.lastName = validated_data['lastName']
-        if 'name' not in validated_data:
-            instance.name = validated_data['firstName'] + ' ' + validated_data['lastName']
-        else:
-            instance.name = validated_data['name']
+        instance.name = validated_data['name']
         instance.snn = validated_data['snn']
         instance.gender = validated_data['gender']
         instance.image = validated_data['image']
@@ -64,7 +61,7 @@ class BarberSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Barber
-        fields = ['firstName', 'lastName', 'snn', 'gender', 'name', 'address', 'long', 'lat', 'image', 'barberName',
+        fields = ['snn', 'gender', 'name', 'address', 'long', 'lat', 'image', 'barberName',
                   'point', 'isTop']
         read_only_fields = ['isTop']
 
@@ -80,10 +77,7 @@ class BarberSerializer(serializers.ModelSerializer):
         try:
             # instance.firstName = validated_data['firstName']
             # instance.lastName = validated_data['lastName']
-            if not validated_data['name']:
-                instance.name = validated_data['firstName'] + ' ' + validated_data['lastName']
-            else:
-                instance.name = validated_data['name']
+            instance.name = validated_data['name']
             instance.snn = validated_data['snn']
             instance.gender = validated_data['gender']
             instance.address = validated_data['address']
