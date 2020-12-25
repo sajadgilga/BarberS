@@ -193,7 +193,9 @@ def generate_image_url(obj):
     image_path = obj.image.storage.base_url + obj.image.storage.base_location + '/' + obj.image.name
     parts = image_path.split('http://')
     if len(parts) == 3:
-        return obj.image.storage.base_url + '/' + obj.image.name
+        image_path = obj.image.storage.base_url + '/' + obj.image.name
+    # if 'static/images/customers' not in image_path:
+    #
     return image_path
 #
 # import dj_database_url
