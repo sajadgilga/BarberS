@@ -189,13 +189,13 @@ error_status = {
 }
 
 
-def generate_image_url(obj):
+def generate_image_url(obj, img_type='services'):
     image_path = obj.image.storage.base_url + obj.image.storage.base_location + '/' + obj.image.name
     parts = image_path.split('http://')
     if len(parts) == 3:
         image_path = obj.image.storage.base_url + '/' + obj.image.name
-    # if 'static/images/customers' not in image_path:
-    #
+    if 'static/images' not in image_path:
+        image_path = obj.image.storage.base_url + '/static/images/' + img_type + '/' + obj.image.name
     return image_path
 #
 # import dj_database_url

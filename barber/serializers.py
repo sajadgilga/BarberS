@@ -10,7 +10,13 @@ class ServiceSchemaSerializer(serializers.ModelSerializer):
 
     def get_icon(self, obj):
         try:
-            return obj.icon.url
+            image_path = obj.icon.storage.base_url + obj.icon.storage.base_location + '/' + obj.icon.name
+            parts = image_path.split('http://')
+            if len(parts) == 3:
+                image_path = obj.icon.storage.base_url + '/' + obj.icon.name
+            if 'static/images' not in image_path:
+                image_path = obj.icon.storage.base_url + '/static/images/services/' + obj.icon.name
+            return image_path
         except:
             return ''
 
@@ -47,7 +53,7 @@ class ProjectSerializer(ModelSerializer):
 
     def get_customer_image(self, obj):
         try:
-            return generate_image_url(obj.customer)
+            return generate_image_url(obj.customer, img_type='customers')
         except:
             return ''
 

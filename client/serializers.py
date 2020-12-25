@@ -108,7 +108,7 @@ class BarberRecordSerializer(serializers.ModelSerializer):
     def get_image_url(self, obj):
         try:
 
-            return generate_image_url(obj)
+            return generate_image_url(obj, img_type='barbers')
         except:
             return ''
 
@@ -292,7 +292,7 @@ class BarberSerializer_out(serializers.ModelSerializer):
 
     def get_image(self, obj):
         try:
-            return generate_image_url(obj)
+            return generate_image_url(obj, img_type='barbers')
         except:
             return ''
 
@@ -304,7 +304,7 @@ class CustomerSerializer_out(serializers.ModelSerializer):
 
     def get_image(self, obj):
         try:
-            return generate_image_url(obj)
+            return generate_image_url(obj, img_type='customers')
         except:
             return ''
 
@@ -323,7 +323,7 @@ class LeanCustomerSerializer(serializers.ModelSerializer):
 
     def get_image(self, obj):
         try:
-            return generate_image_url(obj)
+            return generate_image_url(obj, img_type='customers')
         except:
             return ''
 
@@ -382,7 +382,7 @@ class SampleWorkSerializer(serializers.ModelSerializer):
 
     def get_image(self, obj):
         try:
-            return generate_image_url(obj)
+            return generate_image_url(obj, img_type='samples')
         except:
             return ''
 
@@ -426,7 +426,7 @@ class bar_BarberSerializer(serializers.ModelSerializer):
 
     def get_image(self, obj):
         try:
-            return generate_image_url(obj)
+            return generate_image_url(obj, img_type='barbers')
         except:
             return ''
 
