@@ -261,12 +261,18 @@ class BarberSerializer_out(serializers.ModelSerializer):
     sample_list = serializers.SerializerMethodField()
     services = serializers.SerializerMethodField()
     isTop = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
+    workday_list = serializers.SerializerMethodField()
 
     class Meta:
         model = Barber
-        fields = ['name', 'gender', 'address', 'point', 'long', 'lat', 'image', 'sample_list',
+        fields = ['name', 'gender', 'address', 'point', 'long', 'lat', 'image', 'sample_list', 'workday_list',
                   'barberName', 'services', 'isTop', 'barber_id']
         read_only_fields = ['isTop']
+
+    def get_workday_list(self, obj):
+        workdays = WorkDay.objects.filter(barber=obj)
+        return WorkDaySerializer(workdays, many=True).data
 
     def get_services(self, obj):
         services = Service.objects.filter(barber=obj)
@@ -283,6 +289,12 @@ class BarberSerializer_out(serializers.ModelSerializer):
             return False
         appSettings = AppSettings.load()
         return obj.point >= appSettings.threshold
+
+    def get_image(self, obj):
+        try:
+            return generate_image_url(obj)
+        except:
+            return ''
 
 
 class CustomerSerializer_out(serializers.ModelSerializer):
@@ -362,9 +374,17 @@ class bar_CommentSerializer(serializers.ModelSerializer):
 
 
 class SampleWorkSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
     class Meta:
         model = SampleWork
         fields = ['image']
+
+    def get_image(self, obj):
+        try:
+            return generate_image_url(obj)
+        except:
+            return ''
 
 
 class SampleWorkSerializer_in(serializers.ModelSerializer):

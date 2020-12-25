@@ -287,7 +287,10 @@ def add_like(request):
         return Response(get_error_obj('no_data_found'), status=status.HTTP_400_BAD_REQUEST)
     if customer.isCompleted is False:
         return Response(get_error_obj('access_denied'), status=status.HTTP_405_METHOD_NOT_ALLOWED)
-    customer.like.add(barber)
+    if barber in customer.like:
+        customer.like.remove(barber)
+    else:
+        customer.like.add(barber)
     return Response({"status": 200}, status=status.HTTP_200_OK)
 
 

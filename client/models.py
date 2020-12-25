@@ -106,7 +106,13 @@ class Barber(models.Model):
     )
     barber_id = models.CharField(max_length=32, unique=True, default='barber_id_0')
     is_verified = models.BooleanField(default=False)
-    isTopBarber = models.IntegerField(default=0)
+
+    BARBER_STATUS = (
+        (-1, 'NOT_TOP'),
+        (0, 'NEUTRAL'),
+        (1, 'TOP'),
+    )
+    isTopBarber = models.IntegerField(default=0, choices=BARBER_STATUS)
 
 
 class Comment(models.Model):

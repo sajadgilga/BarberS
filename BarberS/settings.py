@@ -149,7 +149,6 @@ SERVER_BASE_URL = 'http://5.253.24.199:8000/'
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-
 error_status = {
     'server_error': {
         'code': 199,
@@ -191,7 +190,11 @@ error_status = {
 
 
 def generate_image_url(obj):
-    return obj.image.storage.base_url + obj.image.storage.base_location + '/' + obj.image.name
+    image_path = obj.image.storage.base_url + obj.image.storage.base_location + '/' + obj.image.name
+    parts = image_path.split('http://')
+    if len(parts) == 3:
+        return obj.image.storage.base_url + '/' + obj.image.name
+    return image_path
 #
 # import dj_database_url
 #

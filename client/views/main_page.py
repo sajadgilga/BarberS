@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 
 from BarberS.settings import error_status
 from BarberS.utils import get_error_obj
-from client.models import Barber, Customer, Location
+from client.models import Barber, Customer, Location, AppSettings
 from client.serializers import BarberRecordSerializer
 from client.serializers import LocationSerializer
 
@@ -20,6 +20,7 @@ class SampleLocation:
     def __init__(self, long, lat):
         self.long = long
         self.lat = lat
+
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -89,6 +90,9 @@ class BestBarbers(APIView):
         user_location = SampleLocation(long, lat)
         if not long or not lat:
             user_location = customer.location.filter(chosen=True).first()
+
+        appSettings = AppSettings.load()
+        self.queryset = self.queryset.exclude(Q(isTopBarber=-1) | Q(point__lte=appSettings.threshold))
         barbers_data, err = BestBarbers.best(offset, self.LIMIT, self.queryset, user_location, self.serializer_class)
         if err == 1:
             return Response(barbers_data, status=status.HTTP_400_BAD_REQUEST)
