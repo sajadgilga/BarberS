@@ -57,6 +57,9 @@ def login_verify(request):
                 barber.save()
             else:
                 barber = Barber.objects.filter(user=user).first()
+                if not barber:
+                    return Response(get_error_obj('wrong_user_type'),
+                                    status=status.HTTP_400_BAD_REQUEST)
                 barber.gender = gender
                 barber.name = name
                 barber.save()
