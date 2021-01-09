@@ -51,7 +51,7 @@ class Customer(models.Model):
     credit = models.BigIntegerField(default=0)
     image = models.ImageField(null=True, storage=client_image_fs)
     # location = models.CharField(max_length=200)
-    isCompleted = models.BooleanField('', default=False)
+    isCompleted = models.BooleanField('', default=True)
     customer_id = models.CharField(max_length=48)
 
 
@@ -105,7 +105,7 @@ class Barber(models.Model):
         default='m'
     )
     barber_id = models.CharField(max_length=32, unique=True, default='barber_id_0')
-    is_verified = models.BooleanField(default=False)
+    is_verified = models.BooleanField(default=True)
 
     BARBER_STATUS = (
         (-1, 'NOT_TOP'),

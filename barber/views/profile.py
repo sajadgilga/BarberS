@@ -4,6 +4,7 @@ from django.contrib.auth.models import AnonymousUser
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.parsers import JSONParser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -191,6 +192,41 @@ def shift_handler(request):
     if shift is None:
         return Response(get_error_obj('no_data_found'), status=status.HTTP_400_BAD_REQUEST)
     return Response({"status": 200}, status=status.HTTP_200_OK)
+
+
+class BarberLocationHandler(APIView):
+    """
+    Location handler for customer
+    adds functionality as below:
+        - get customer locations
+        - change customer chosen location
+        - adds a new location to customer
+    """
+    permission_classes = [IsAuthenticated]
+
+    class Action:
+        GET = 0
+        CHANGE = 1
+
+    def post(self, request):
+        """
+        Add location to customer locations
+        :param request:
+        :return:
+        """
+        user = request.user
+        try:
+            customer = Customer.objects.get(user=user)
+        except:
+            return Response(get_error_obj('no_data_found'), status=status.HTTP_404_NOT_FOUND)
+        data = request.data
+        serializer = self.serializer_class(data=
+                                           {"long": data['long'], "lat": data['lat'], "address": data['address'],
+                                            "customerID": customer.customer_id})
+        if not serializer.is_valid():
+            return Response(get_error_obj('wrong_parameters'), status=status.HTTP_400_BAD_REQUEST)
+        location = serializer.create(serializer.validated_data)
+        return Response(status=status.HTTP_200_OK)
 
 # 801 : barber not verified
 # 802 : barber not exist
