@@ -99,6 +99,7 @@ class BarberRecordSerializer(serializers.ModelSerializer):
     image_url = serializers.SerializerMethodField()
     distance = serializers.SerializerMethodField()
     isTop = serializers.SerializerMethodField()
+    liked = serializers.SerializerMethodField()
 
     def get_name(self, obj):
         if not obj.name or obj.name == '':
@@ -131,8 +132,8 @@ class BarberRecordSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Barber
-        fields = ['id', 'name', 'image_url', 'distance', 'point', 'isTop']
-        read_only_fields = ['id', 'name', 'image_url', 'distance', 'point', 'isTop']
+        fields = ['id', 'name', 'image_url', 'distance', 'point', 'isTop', 'liked']
+        read_only_fields = ['id', 'name', 'image_url', 'distance', 'point', 'isTop', 'liked']
 
     def get_isTop(self, obj):
         if obj.isTopBarber > 0:
@@ -141,6 +142,11 @@ class BarberRecordSerializer(serializers.ModelSerializer):
             return False
         appSettings = AppSettings.load()
         return obj.point >= appSettings.threshold
+
+    def get_liked(self, obj):
+        if 'customer' not in self.context:
+            return False
+        return self.context['customer'].like.filter(barber_id=obj.barber_id).exists()
 
 
 class ServiceSchemaSerilzerIn(serializers.Serializer):
@@ -263,12 +269,18 @@ class BarberSerializer_out(serializers.ModelSerializer):
     isTop = serializers.SerializerMethodField()
     image = serializers.SerializerMethodField()
     workday_list = serializers.SerializerMethodField()
+    liked = serializers.SerializerMethodField()
 
     class Meta:
         model = Barber
-        fields = ['name', 'gender', 'address', 'point', 'long', 'lat', 'image', 'sample_list', 'workday_list',
+        fields = ['name', 'gender', 'address', 'point', 'long', 'lat', 'image', 'sample_list', 'workday_list', 'liked',
                   'barberName', 'services', 'isTop', 'barber_id']
         read_only_fields = ['isTop']
+
+    def get_liked(self, obj):
+        if 'customer' not in self.context:
+            return False
+        return self.context['customer'].like.filter(barber_id=obj.barber_id).exists()
 
     def get_workday_list(self, obj):
         workdays = WorkDay.objects.filter(barber=obj)

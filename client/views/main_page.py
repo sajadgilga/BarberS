@@ -42,11 +42,11 @@ def get_home_page(request):
         user_location = customer.location.filter(chosen=True).first()
 
     closest_data, err = ClosestBarbers.closest(0, ClosestBarbers.LIMIT, Barber.objects.all(), user_location,
-                                               BarberRecordSerializer)
+                                               BarberRecordSerializer, customer)
     if err == 1:
         return Response(closest_data, status=status.HTTP_400_BAD_REQUEST)
     best_data, err = BestBarbers.best(0, BestBarbers.LIMIT, Barber.objects.all().order_by('-point'), user_location,
-                                      BarberRecordSerializer)
+                                      BarberRecordSerializer, customer)
     if err == 1:
         return Response(best_data, status=status.HTTP_400_BAD_REQUEST)
     return Response({"best_barbers": best_data.data, "closest_barbers": closest_data.data})
@@ -62,7 +62,7 @@ class BestBarbers(APIView):
     LIMIT = 10
 
     @staticmethod
-    def best(offset, limit, dataset, user_location, serializer_class):
+    def best(offset, limit, dataset, user_location, serializer_class, customer):
         offset = limit * int(offset)
         size = dataset.count()
         if offset > size:
@@ -74,7 +74,7 @@ class BestBarbers(APIView):
         if not user_location:
             return get_error_obj('no_location_found'), 1
         barbers = serializer_class(barbers, many=True,
-                                   context={"user_location": user_location})
+                                   context={"user_location": user_location, 'customer': customer})
         return barbers, 0
 
     def get(self, request):
@@ -93,7 +93,7 @@ class BestBarbers(APIView):
 
         appSettings = AppSettings.load()
         self.queryset = self.queryset.exclude(Q(isTopBarber=-1) | Q(point__lte=appSettings.threshold))
-        barbers_data, err = BestBarbers.best(offset, self.LIMIT, self.queryset, user_location, self.serializer_class)
+        barbers_data, err = BestBarbers.best(offset, self.LIMIT, self.queryset, user_location, self.serializer_class, customer)
         if err == 1:
             return Response(barbers_data, status=status.HTTP_400_BAD_REQUEST)
         return Response(barbers_data.data)
@@ -109,7 +109,7 @@ class ClosestBarbers(APIView):
     LIMIT = 10
 
     @staticmethod
-    def closest(offset, limit, dataset, user_location, serializer_class):
+    def closest(offset, limit, dataset, user_location, serializer_class, customer):
         if not user_location:
             return get_error_obj('no_location_found'), 1
         queryset = sorted(dataset.all(),
@@ -126,7 +126,7 @@ class ClosestBarbers(APIView):
             barbers = queryset[offset:]
         barbers = serializer_class(barbers, many=True,
                                    context={
-                                       "user_location": user_location})
+                                       "user_location": user_location, 'customer': customer})
         return barbers, 0
 
     @staticmethod
@@ -159,7 +159,7 @@ class ClosestBarbers(APIView):
         if not long or not lat:
             user_location = customer.location.filter(chosen=True).first()
         barbers_data, err = ClosestBarbers.closest(offset, self.LIMIT, self.queryset, user_location,
-                                                   self.serializer_class)
+                                                   self.serializer_class, customer)
         if err == 1:
             return Response(barbers_data, status=status.HTTP_400_BAD_REQUEST)
         return Response(barbers_data.data)
@@ -205,7 +205,7 @@ class SearchBarbers(APIView):
                           key=lambda barber: ClosestBarbers.cal_dist(user_location,
                                                                      [barber.long, barber.lat]))
         barbers = self.serializer_class(queryset, many=True, context={
-            "user_location": user_location})
+            "user_location": user_location, 'customer': customer})
         return Response(barbers.data)
 
     def get(self, request):
@@ -236,7 +236,7 @@ class SearchBarbers(APIView):
                          key=lambda barber: ClosestBarbers.cal_dist(user_location,
                                                                     [barber.long, barber.lat]))
         barbers = self.serializer_class(barbers, many=True, context={
-            "user_location": user_location})
+            "user_location": user_location, 'customer': customer})
         return Response(barbers.data)
 
 

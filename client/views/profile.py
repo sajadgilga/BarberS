@@ -12,10 +12,10 @@ from client.serializers import *
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def barber_profile(request):
-    # user = request.user
-    # if user is None:
-    #     return Response("user not found ", status=status.HTTP_400_BAD_REQUEST)
-    # customer = Customer.objects.filter(user=request.user).first()
+    user = request.user
+    if user is None:
+        return Response("user not found ", status=status.HTTP_400_BAD_REQUEST)
+    customer = Customer.objects.filter(user=request.user).first()
     # if customer is None:
     #     return Response(status=status.HTTP_404_NOT_FOUND)
     # if customer.isCompleted is False :
@@ -29,7 +29,7 @@ def barber_profile(request):
     barber = Barber.objects.filter(barber_id=barber_id).first()
     if barber is None:
         return Response(get_error_obj('no_data_found'), status=status.HTTP_400_BAD_REQUEST)
-    serializer = BarberSerializer_out(barber)
+    serializer = BarberSerializer_out(barber, context={'customer': customer})
 
     return Response(serializer.data)
 
