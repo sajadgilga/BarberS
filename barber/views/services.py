@@ -33,7 +33,7 @@ class ServiceHandler(APIView):
             try:
                 service = Service(service_id="service_{}".format(Service.objects.count() + 1))
             except:
-                service = Service(service_id="service_{}".format(Service.objects.all().last().pk + 1))
+                service = Service(service_id="service_{}".format(Service.objects.all().last().pk + 2))
             service.barber = barber
             service.schema = schema
         service.cost = cost
