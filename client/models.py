@@ -33,7 +33,6 @@ class SingletonModel(models.Model):
 class AppSettings(SingletonModel):
     threshold = models.FloatField(default=4)
 
-
 class Customer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     like = models.ManyToManyField(to='Barber', related_name='customer')
@@ -184,3 +183,4 @@ class Service(models.Model):
     cost = models.FloatField('cost of service')
     service_id = models.CharField(unique=True, max_length=32, default='service_0')
     service_number = models.CharField(max_length=50, default='')
+    enabled = models.BooleanField(default=True)
