@@ -31,11 +31,9 @@ class ServiceHandler(APIView):
         service = Service.objects.filter(schema__service_schema_id=service_id, barber=barber).first()
         if not service:
             try:
-                service = Service.objects.create(service_id="service_{}".format(Service.objects.count() + 1))
+                service = Service.objects.create(barber=barber, schema=schema, cost=0, service_id="service_{}".format(Service.objects.count() + 1))
             except:
-                service = Service.objects.create(service_id="service_{}".format(Service.objects.all().last().pk + 2))
-            service.barber = barber
-            service.schema = schema
+                service = Service.objects.create(barber=barber, schema=schema, cost=0, service_id="service_{}".format(Service.objects.all().last().pk + 2))
         service.cost = cost
         service.save()
         return Response({"status": 200})
