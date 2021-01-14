@@ -22,7 +22,8 @@ class ServiceHandler(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
         schema = ServiceSchema.objects.filter(service_schema_id=service_id).first()
         if not schema:
-            return Response(get_error_obj('no_data_found'), 'service schema was not found')
+            return Response(get_error_obj('no_data_found', 'service schema was not found'),
+                            status=status.HTTP_404_NOT_FOUND)
         if schema.lower_limit != 0 and schema.lower_limit > cost:
             return Response(get_error_obj('wrong_parameters', 'cost is out of range'), status=status.HTTP_409_CONFLICT)
         if schema.upper_limit != -1 and schema.upper_limit < cost:
