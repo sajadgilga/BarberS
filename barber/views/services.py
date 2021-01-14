@@ -30,7 +30,10 @@ class ServiceHandler(APIView):
             return Response(get_error_obj('wrong_parameters', 'cost is out of range'), status=status.HTTP_409_CONFLICT)
         service = Service.objects.filter(schema__service_schema_id=service_id, barber=barber).first()
         if not service:
-            service = Service(service_id="service_{}".format(Service.objects.count() + 1))
+            try:
+                service = Service(service_id="service_{}".format(Service.objects.count() + 1))
+            except:
+                service = Service(service_id="service_{}".format(Service.objects.all().last().pk + 1))
             service.barber = barber
             service.schema = schema
         service.cost = cost
