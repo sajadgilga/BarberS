@@ -518,13 +518,20 @@ class ShiftSerializer(serializers.ModelSerializer):
 
 # todo : make validator for another inputs especialy start_time and end_time
 
+class LeanShiftSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Shift
+        fields = ['name', 'start_time', 'end_time']
+
+
 class WorkDaySerializer(serializers.ModelSerializer):
-    start_time = serializers.SerializerMethodField()
-    end_time = serializers.SerializerMethodField()
+    # start_time = serializers.SerializerMethodField()
+    # end_time = serializers.SerializerMethodField()
+    shifts = LeanShiftSerializer(many=True)
 
     class Meta:
         model = WorkDay
-        fields = ['week_days', 'start_time', 'end_time']
+        fields = ['week_days', 'shifts']
 
     def get_start_time(self, obj):
         shift = Shift.objects.filter(workday=obj).first()

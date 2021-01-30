@@ -33,7 +33,7 @@ class LoginUserAdmin(admin.ModelAdmin):
 
 @admin.register(Barber)
 class BarberAdmin(admin.ModelAdmin):
-    list_display = ('firstName', 'lastName', 'snn', 'phone', 'barberName', 'point',)
+    list_display = ('id', 'barber_id', 'name', 'snn', 'phone', 'barberName', 'point',)
     list_filter = ('firstName', 'lastName', 'snn',)
     search_fields = ('firstName', 'lastName', 'snn',)
 

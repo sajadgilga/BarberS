@@ -177,7 +177,7 @@ class Shift(models.Model):
     name = models.CharField(max_length=30, choices=shifts, default='m')
     start_time = models.TimeField(null=True, blank=True)
     end_time = models.TimeField(null=True, blank=True)
-    workday = models.ForeignKey('WorkDay', on_delete=models.CASCADE)
+    workday = models.ForeignKey('WorkDay', on_delete=models.CASCADE, related_name='shifts')
 
 
 class Service(models.Model):
