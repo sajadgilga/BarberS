@@ -411,7 +411,7 @@ class SampleWorkSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SampleWork
-        fields = ['image']
+        fields = ['id', 'image']
 
     def get_image(self, obj):
         try:
@@ -521,7 +521,7 @@ class ShiftSerializer(serializers.ModelSerializer):
 class LeanShiftSerializer(serializers.ModelSerializer):
     class Meta:
         model = Shift
-        fields = ['name', 'start_time', 'end_time']
+        fields = ['id', 'name', 'start_time', 'end_time']
 
 
 class WorkDaySerializer(serializers.ModelSerializer):
