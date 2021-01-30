@@ -6,6 +6,12 @@ from client.models import *
 admin.site.register(AppSettings)
 
 
+@admin.register(TutorialVideo)
+class TutorialVideoAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'created_date')
+    list_filter = ('created_date',)
+
+
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):
     list_display = ('firstName', 'lastName', 'snn', 'phone', 'gender')

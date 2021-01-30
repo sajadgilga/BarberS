@@ -11,6 +11,8 @@ client_image_fs = FileSystemStorage(location='static/images/customers', base_url
 barber_image_fs = FileSystemStorage(location='static/images/barbers', base_url=SERVER_BASE_URL)
 service_image_fs = FileSystemStorage(location='static/images/services', base_url=SERVER_BASE_URL)
 sample_image_fs = FileSystemStorage(location='static/images/samples', base_url=SERVER_BASE_URL)
+tutorial_video_fs = FileSystemStorage(location='static/images/tutorial_videos',
+                                      base_url='static/images/tutorial_videos')
 
 
 class SingletonModel(models.Model):
@@ -32,6 +34,7 @@ class SingletonModel(models.Model):
 
 class AppSettings(SingletonModel):
     threshold = models.FloatField(default=4)
+
 
 class Customer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -184,3 +187,11 @@ class Service(models.Model):
     service_id = models.CharField(unique=True, max_length=32, default='service_0')
     service_number = models.CharField(max_length=50, default='')
     enabled = models.BooleanField(default=True)
+
+
+class TutorialVideo(models.Model):
+    name = models.CharField(max_length=128, default='')
+    created_date = models.DateTimeField(auto_now_add=True, null=True)
+    description = models.TextField(default='', blank=True)
+    image = models.ImageField(storage=tutorial_video_fs)
+    link = models.TextField(default='')

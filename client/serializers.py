@@ -8,6 +8,21 @@ from barber.serializers import ServiceSerializer
 from client.models import *
 
 
+class TutorialVideoSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = TutorialVideo
+        fields = '__all__'
+
+    def get_image(self, obj):
+        try:
+
+            return SERVER_BASE_URL + obj.image.url
+        except:
+            return ''
+
+
 class CustomerSerializer(serializers.ModelSerializer):
     # image = serializers.SerializerMethodField()
 
@@ -270,12 +285,18 @@ class BarberSerializer_out(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     workday_list = serializers.SerializerMethodField()
     liked = serializers.SerializerMethodField()
+    tutorials = serializers.SerializerMethodField()
 
     class Meta:
         model = Barber
         fields = ['name', 'gender', 'address', 'point', 'long', 'lat', 'image', 'sample_list', 'workday_list', 'liked',
+                  'tutorials',
                   'barberName', 'services', 'isTop', 'barber_id']
         read_only_fields = ['isTop']
+
+    def get_tutorials(self, obj):
+        tutorials = TutorialVideo.objects.all()[:10]
+        return TutorialVideoSerializer(tutorials, many=True).data
 
     def get_liked(self, obj):
         if 'customer' not in self.context:

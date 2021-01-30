@@ -1,11 +1,7 @@
-import io
-
 from django.contrib.auth.models import AnonymousUser
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.parsers import JSONParser
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -57,7 +53,8 @@ def get_profile(request):
     barber = Barber.objects.filter(user=user).first()
     if barber is None:
         return Response(get_error_obj('no_data_found'), status=status.HTTP_400_BAD_REQUEST)
-    serializer = bar_BarberSerializer(barber)
+    serializer = BarberSerializer_out(barber)
+    # serializer = bar_BarberSerializer(barber)
 
     return Response(serializer.data)
 
@@ -72,7 +69,7 @@ class Get_home(APIView):
         # offset = [0 for i in range(length)]
         queryset = [[] for i in range(length)]
         serializer = [[] for i in range(length)]
-        final = []
+        final = {}
         # final = json.dumps(final)
         try:
             user = request.user
@@ -102,12 +99,13 @@ class Get_home(APIView):
             cnt = 0
             # extrat_data = {'barber': barber.barberName, 'name': barber.firstName + ' ' + barber.lastName}
             for i in serializer:
-                temp = {}
-                temp[stat[cnt][1]] = i.data
-                json = JSONRenderer().render(temp)
-                stream = io.BytesIO(json)
-                data = JSONParser().parse(stream)
-                final.append(data)
+                final[stat[cnt][1]] = i.data
+                # temp = {}
+                # temp[stat[cnt][1]] = i.data
+                # json = JSONRenderer().render(temp)
+                # stream = io.BytesIO(json)
+                # data = JSONParser().parse(stream)
+                # final.append(data)
                 cnt += 1
         except Exception as error:
             return Response(get_error_obj('server_error'), status=status.HTTP_400_BAD_REQUEST)
